@@ -492,7 +492,7 @@ noGroupsMember:"Tu ne fais encore partie d'aucun cercle : tes évènements reste
 setTitle:'Préférences, cercles et membres',subjNote:'Elles servent à trier les tâches et peuvent colorer les cours. Tout le monde les voit, seule la personne qui les crée peut les modifier.',
 backupNote:'Télécharge une copie de ce que tu vois, ou la liste des évènements pour Excel.',importSummary:"Le fichier contient <b>{e}</b> évènement(s), <b>{t}</b> tâche(s) et <b>{s}</b> matière(s). Ils seront ajoutés à ton nom dans le cercle choisi ; les éléments déjà présents avec le même identifiant seront remplacés.",
 sync_offline:'Hors ligne (enregistré sur l\'appareil)',inviteHint:"Après l'avoir ajouté, envoie-lui le lien de cette page. Il se connecte avec ce compte Google.",
-youTag:'toi',subjCircle:'Cercle',allCircles:'Tous les cercles',subjCircleNote:'La matière ne sera proposée que pour les évènements et tâches de ce cercle.',subjNote:'Chaque matière appartient à un cercle : en ajoutant un cours dans « School Paps », le menu ne propose que les matières de ce cercle.',linkCopy:'Copier le lien',tCopied:'Lien copié'
+youTag:'toi',whoTitle:'Qui es-tu ?',whoText:'Le compte {e} est partagé par plusieurs personnes. Choisis la tienne : tes évènements privés, ta couleur et tes préférences sont séparés.',pickSwitch:'Changer de personne',profileLbl:'Personne',mbProfiles:'Personnes qui partagent ce compte (facultatif)',mbProfilesNote:'Sépare les prénoms par des virgules, par exemple « Papa, Maman ». Chacun aura ses évènements, sa couleur et ses préférences.',subjCircle:'Cercle',allCircles:'Tous les cercles',subjCircleNote:'La matière ne sera proposée que pour les évènements et tâches de ce cercle.',subjNote:'Chaque matière appartient à un cercle : en ajoutant un cours dans « School Paps », le menu ne propose que les matières de ce cercle.',linkCopy:'Copier le lien',tCopied:'Lien copié'
 });
 Object.assign(L.en,{
 signTitle:'Shared planner',signText:'Sign in with your Google account to see the planner and add your activities.',signBtn:'Sign in with Google',signErr:'Sign-in failed. Try again, or open the page in Safari or Chrome if you are inside another app.',
@@ -509,7 +509,7 @@ noGroupsMember:'You are not in any circle yet: your events stay private.',
 setTitle:'Preferences, circles and members',subjNote:'They sort tasks and can color classes. Everyone sees them; only their creator can change them.',
 backupNote:'Download a copy of what you can see, or the list of events for Excel.',importSummary:'The file holds <b>{e}</b> event(s), <b>{t}</b> task(s) and <b>{s}</b> subject(s). They will be added under your name in the chosen circle; items with the same ID will be replaced.',
 sync_offline:'Offline (saved on this device)',inviteHint:'After adding them, send them the link to this page. They sign in with that Google account.',
-youTag:'you',subjCircle:'Circle',allCircles:'All circles',subjCircleNote:'The subject is only offered for events and tasks in this circle.',subjNote:'Each subject belongs to a circle: when adding a class to a circle, the menu only offers that circle\'s subjects.',linkCopy:'Copy link',tCopied:'Link copied'
+youTag:'you',whoTitle:'Who are you?',whoText:'The account {e} is shared by several people. Pick yours: your private events, color and preferences are kept apart.',pickSwitch:'Switch person',profileLbl:'Person',mbProfiles:'People sharing this account (optional)',mbProfilesNote:'Separate names with commas, for example “Dad, Mum”. Each gets their own events, color and preferences.',subjCircle:'Circle',allCircles:'All circles',subjCircleNote:'The subject is only offered for events and tasks in this circle.',subjNote:'Each subject belongs to a circle: when adding a class to a circle, the menu only offers that circle\'s subjects.',linkCopy:'Copy link',tCopied:'Link copied'
 });
 Object.assign(L.nl,{
 signTitle:'Gedeelde planning',signText:'Meld je aan met je Google-account om de planning te zien en je activiteiten toe te voegen.',signBtn:'Aanmelden met Google',signErr:'Aanmelden is mislukt. Probeer opnieuw, of open de pagina in Safari of Chrome als je in een andere app zit.',
@@ -526,7 +526,7 @@ noGroupsMember:'Je zit nog in geen enkele kring: je activiteiten blijven privé.
 setTitle:'Voorkeuren, kringen en leden',subjNote:'Ze sorteren taken en kunnen lessen kleuren. Iedereen ziet ze; alleen wie ze aanmaakt, kan ze wijzigen.',
 backupNote:'Download een kopie van wat je ziet, of de lijst van activiteiten voor Excel.',importSummary:'Het bestand bevat <b>{e}</b> activiteit(en), <b>{t}</b> taak/taken en <b>{s}</b> vak(ken). Ze worden op jouw naam toegevoegd in de gekozen kring; items met dezelfde ID worden vervangen.',
 sync_offline:'Offline (opgeslagen op dit toestel)',inviteHint:'Stuur na het toevoegen de link van deze pagina. Die persoon meldt zich aan met dat Google-account.',
-youTag:'jij',subjCircle:'Kring',allCircles:'Alle kringen',subjCircleNote:'Het vak wordt alleen voorgesteld voor activiteiten en taken in deze kring.',subjNote:'Elk vak hoort bij een kring: bij een les in een kring toont het menu alleen de vakken van die kring.',linkCopy:'Link kopiëren',tCopied:'Link gekopieerd'
+youTag:'jij',whoTitle:'Wie ben je?',whoText:'Het account {e} wordt door meerdere personen gedeeld. Kies jezelf: je privé-activiteiten, kleur en voorkeuren blijven gescheiden.',pickSwitch:'Andere persoon',profileLbl:'Persoon',mbProfiles:'Personen die dit account delen (optioneel)',mbProfilesNote:'Scheid de namen met komma’s, bijvoorbeeld „Papa, Mama”. Ieder krijgt eigen activiteiten, kleur en voorkeuren.',subjCircle:'Kring',allCircles:'Alle kringen',subjCircleNote:'Het vak wordt alleen voorgesteld voor activiteiten en taken in deze kring.',subjNote:'Elk vak hoort bij een kring: bij een les in een kring toont het menu alleen de vakken van die kring.',linkCopy:'Link kopiëren',tCopied:'Link gekopieerd'
 });
 
 /* ---------- helpers ---------- */
@@ -603,7 +603,7 @@ const CFG=window.PLANNING_CONFIG||{};
 const state={
   phase:'loading',tab:[...TABS,'reglages'].includes(hashTab)?hashTab:(ui.tab||'jour'),
   cursor:todayStr(),
-  user:null,uid:null,email:'',isAdmin:false,member:null,
+  user:null,uid:null,authUid:null,email:'',isAdmin:false,member:null,profile:null,profilesList:[],profilesLoaded:false,
   groups:[],members:[],profiles:{},subjects:[],userDoc:{},
   evBy:{},tkBy:{},events:[],tasks:[],
   loadedSpaces:new Set(),pending:false,fromCache:false,offline:!navigator.onLine,
@@ -726,15 +726,43 @@ function startCore(){
   if(unsubs.core.length)return;
   const e=x=>console.warn('core',x&&x.code);
   unsubs.core.push(fb.collection('groups').onSnapshot(s=>{state.groups=s.docs.map(d=>({...d.data(),id:d.id})).sort((a,b)=>String(a.name).localeCompare(String(b.name)));syncSpaces();render()},e));
-  unsubs.core.push(fb.collection('profiles').onSnapshot(s=>{const p={};s.docs.forEach(d=>p[d.id]=d.data());state.profiles=p;if(!s.metadata.fromCache&&!state.profileChecked){state.profileChecked=true;ensureProfile()}render()},e));
+  unsubs.core.push(fb.collection('profiles').onSnapshot(s=>{const p={};s.docs.forEach(d=>p[d.id]=d.data());state.profiles=p;if(!s.metadata.fromCache){state.profilesLoaded=true;maybeEnsure()}render()},e));
   unsubs.core.push(fb.collection('subjects').onSnapshot(s=>{state.subjects=s.docs.map(d=>({...d.data(),id:d.id}));render()},e));
   unsubs.core.push(fb.collection('members').onSnapshot(s=>{state.members=s.docs.map(d=>({...d.data(),id:d.id})).sort((a,b)=>a.id.localeCompare(b.id));render()},e));
 }
 function ensureProfile(){
   const u=state.user,cur=state.profiles[state.uid];
-  const name=(state.member&&state.member.name)||u.displayName||u.email;
+  const name=state.profile?state.profile.name:((state.member&&state.member.name)||u.displayName||u.email);
   const data={name,email:state.email,color:cur&&Number.isInteger(cur.color)?cur.color:hash(state.uid)%8,updatedAt:nowIso()};
   if(!cur||cur.name!==name||cur.email!==state.email)fb.collection('profiles').doc(state.uid).set(data,{merge:true}).catch(()=>{});
+}
+/* one Google account can hold several people (e.g. Papa and Maman): each gets an id "<uid>:<person>" */
+const slug=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,40)||'p';
+const profKey=()=>'planning.profile.'+state.authUid;
+function startUser(){
+  if(unsubs.user)unsubs.user();
+  unsubs.user=fb.collection('users').doc(state.uid).onSnapshot(s=>{
+    state.userDoc=s.exists?s.data():{};const p=state.userDoc.prefs||{};
+    const next={lang:LANGS[p.lang]?p.lang:state.prefs.lang,colorBy:['cat','subject','person','circle'].includes(p.colorBy)?p.colorBy:state.prefs.colorBy};
+    if(next.lang!==lang)setLang(next.lang);state.prefs=next;ls.set('planning.prefs',next);render();
+  },()=>{});
+}
+function settleIdentity(){
+  const m=state.member||{},profs=Array.isArray(m.profiles)?m.profiles.filter(p=>p&&p.id&&p.name):[];
+  state.profilesList=profs;
+  let want=state.authUid;
+  if(profs.length){
+    const p=profs.find(x=>x.id===ls.get(profKey(),null));
+    if(!p){state.profile=null;return false}
+    state.profile=p;want=state.authUid+':'+p.id;
+  }else state.profile=null;
+  if(want!==state.uid){state.uid=want;stopSpaces();startUser();state.profileChecked=false}
+  return true;
+}
+function maybeEnsure(){if(state.phase==='app'&&state.profilesLoaded&&!state.profileChecked){state.profileChecked=true;ensureProfile()}}
+function enterApp(){
+  if(!settleIdentity()){state.phase='pick';stopSpaces();render();return}
+  state.phase='app';startCore();syncSpaces();maybeEnsure();render();
 }
 function boot(){
   const ok=CFG.firebase&&CFG.firebase.apiKey&&!/COLLE|PASTE|XXX/i.test(CFG.firebase.apiKey)&&window.firebase;
@@ -746,16 +774,12 @@ function boot(){
   auth.onAuthStateChanged(u=>{
     stopAll();state.profileChecked=false;
     if(!u){state.user=null;state.uid=null;state.member=null;state.phase='signin';render();return}
-    state.user=u;state.uid=u.uid;state.email=(u.email||'').toLowerCase();
+    state.user=u;state.uid=u.uid;state.authUid=u.uid;state.email=(u.email||'').toLowerCase();state.profilesLoaded=false;
     state.isAdmin=!!CFG.adminEmail&&state.email===String(CFG.adminEmail).toLowerCase();
     state.phase='loading';render();
-    unsubs.user=fb.collection('users').doc(u.uid).onSnapshot(s=>{
-      state.userDoc=s.exists?s.data():{};const p=state.userDoc.prefs||{};
-      const next={lang:LANGS[p.lang]?p.lang:state.prefs.lang,colorBy:['cat','subject','person','circle'].includes(p.colorBy)?p.colorBy:state.prefs.colorBy};
-      if(next.lang!==lang)setLang(next.lang);state.prefs=next;ls.set('planning.prefs',next);render();
-    },()=>{});
+    startUser();
     unsubs.member=fb.collection('members').doc(state.email).onSnapshot(s=>{
-      if(s.exists){state.member=s.data();state.phase='app';startCore();syncSpaces();render()}
+      if(s.exists){state.member=s.data();enterApp()}
       else{state.member=null;stopSpaces();state.phase=state.isAdmin?'init':'noaccess';render()}
     },()=>{state.phase=state.isAdmin?'init':'noaccess';render()});
   });
@@ -814,6 +838,7 @@ function doRender(){
   else if(state.phase==='signin')html=renderSignin();
   else if(state.phase==='noaccess')html=renderNoAccess();
   else if(state.phase==='init')html=renderInit();
+  else if(state.phase==='pick')html=renderPick();
   else html=({jour:renderJour,semaine:renderSemaine,mois:renderMois,echeances:renderEcheances,taches:renderTaches,job:renderJob,reglages:renderReglages}[state.tab]||renderJour)();
   view.innerHTML=html;
   restoreForm(view,st);
@@ -836,6 +861,7 @@ function updateSync(){
 const gate=(title,body)=>`<div class="gate panel"><h1>${esc(title)}</h1>${body}</div>`;
 function renderSignin(){return gate(t('signTitle'),`<p>${esc(t('signText'))}</p><button class="btn primary big" data-act="signin">${ICON.google}${esc(t('signBtn'))}</button>${state.signErr?`<p class="err">${esc(t('signErr'))}</p>`:''}<div class="langpick">${Object.entries(LANGS).map(([k,v])=>`<button class="btn ghost" data-act="lang" data-v="${k}" aria-pressed="${lang===k}">${v}</button>`).join('')}</div>`)}
 function renderNoAccess(){return gate(t('noAccTitle'),`<p>${esc(t('noAccText',{e:state.email}))}</p><button class="btn" data-act="signout">${esc(t('signOut'))}</button>`)}
+function renderPick(){return gate(t('whoTitle'),`<p>${esc(t('whoText',{e:state.email}))}</p><div class="btnrow">${state.profilesList.map(p=>`<button class="btn primary big" data-act="pick-profile" data-id="${esc(p.id)}">${esc(p.name)}</button>`).join('')}</div><button class="btn ghost" data-act="signout">${esc(t('signOut'))}</button>`)}
 function renderInit(){return gate(t('initTitle'),`<p>${esc(t('initText'))}</p><button class="btn primary big" data-act="init">${esc(t('initBtn'))}</button>`)}
 function renderConfig(){
   const host=location.hostname||'ton-nom.github.io';
@@ -1056,12 +1082,12 @@ function renderReglages(){
     <div class="field"><span class="lbl">${esc(t('colorBy'))}</span><div class="seg wrap" role="group" aria-label="${esc(t('colorBy'))}">${[['person','byPerson'],['circle','byCircle'],['cat','byCat'],['subject','bySubj']].map(([k,l])=>`<button data-act="colorby" data-v="${k}" aria-pressed="${state.prefs.colorBy===k}">${esc(t(l))}</button>`).join('')}</div></div>
     <div class="field"><span class="lbl">${esc(t('myColor'))}</span><div class="swatches">${[...Array(8)].map((_,k)=>`<label class="sw"><input type="radio" name="my-col" value="${k}" ${myCol%8===k?'checked':''} aria-label="${esc(t('colorN',{n:k+1}))}"><span style="--sc:var(--s${k})"></span></label>`).join('')}</div></div>
     <div class="two"><div class="field"><label for="set-start">${esc(t('dayStart'))}</label><select id="set-start" data-live="1">${[5,6,7,8,9,10].map(x=>`<option value="${x}" ${+(ud.dayStart??7)===x?'selected':''}>${pad(x)}:00</option>`).join('')}</select></div><div class="field"><label for="set-end">${esc(t('dayEnd'))}</label><select id="set-end" data-live="1">${[17,18,19,20,21,22,23,24].map(x=>`<option value="${x}" ${+(ud.dayEnd??21)===x?'selected':''}>${pad(x)}:00</option>`).join('')}</select></div></div></div></div>`;
-  h+=`<div class="panel"><h2>${esc(t('account'))}</h2><p style="margin:0 0 10px"><span class="person"><i class="dot big" style="--sc:${personColor(state.uid)}"></i><b>${esc((state.profiles[state.uid]||{}).name||state.email)}</b></span><br><span class="muted">${esc(state.email)} · ${esc(t(state.isAdmin?'roleAdmin':'roleMember'))}</span></p>${!(state.member&&state.member.groups||[]).length?`<p class="note">${esc(t('noGroupsMember'))}</p>`:''}<div class="btnrow"><button class="btn" data-act="copy-link">${esc(t('linkCopy'))}</button><button class="btn" data-act="signout">${esc(t('signOut'))}</button></div><p class="note" style="margin:10px 0 0">${esc(t('installHint'))}</p></div>`;
+  h+=`<div class="panel"><h2>${esc(t('account'))}</h2><p style="margin:0 0 10px"><span class="person"><i class="dot big" style="--sc:${personColor(state.uid)}"></i><b>${esc((state.profiles[state.uid]||{}).name||state.email)}</b></span><br><span class="muted">${esc(state.email)} · ${esc(t(state.isAdmin?'roleAdmin':'roleMember'))}</span></p>${state.profile?`<p style="margin:0 0 10px">${esc(t('profileLbl'))} : <b>${esc(state.profile.name)}</b> · <button class="btn ghost" style="min-height:0;padding:2px 6px;color:var(--accent)" data-act="switch-profile">${esc(t('pickSwitch'))}</button></p>`:''}${!(state.member&&state.member.groups||[]).length?`<p class="note">${esc(t('noGroupsMember'))}</p>`:''}<div class="btnrow"><button class="btn" data-act="copy-link">${esc(t('linkCopy'))}</button><button class="btn" data-act="signout">${esc(t('signOut'))}</button></div><p class="note" style="margin:10px 0 0">${esc(t('installHint'))}</p></div>`;
   h+=`<div class="panel"><h2>${esc(t('subjects'))}</h2><p class="note">${esc(t('subjNote'))}</p>${state.subjects.length?(()=>{const keys=[...new Set(state.subjects.map(s=>s.circle||''))].sort((x,y)=>(x===''?1:0)-(y===''?1:0)||circleName(x).localeCompare(circleName(y)));return keys.map(k=>`<h3 class="subj-h">${esc(circleName(k))}</h3>`+state.subjects.filter(s=>(s.circle||'')===k).sort((a,b)=>String(a.name).localeCompare(String(b.name))).map(s=>`<button class="subj" data-act="edit-subj" data-id="${esc(s.id)}"><i class="dot" style="--sc:${sColor(s)}"></i><span style="flex:1;min-width:0"><b>${esc(s.name)}</b>${s.code?` <span class="muted mono" style="font-size:.8rem">${esc(s.code)}</span>`:''}${s.teacher?`<br><span class="muted" style="font-size:.82rem">${esc(s.teacher)}</span>`:''}</span></button>`).join('')).join('')})():`<p class="empty">${esc(t('noSubj'))}</p>`}<div class="btnrow" style="margin-top:10px"><button class="btn" data-act="new-subj">${esc(t('addSubj'))}</button></div></div>`;
   h+=`</div><div>`;
   if(state.isAdmin){
     h+=`<div class="panel"><h2>${esc(t('circles'))}</h2><p class="note">${esc(t('circlesNote'))}</p>${state.groups.map(g=>`<button class="subj" data-act="edit-circle" data-id="${esc(g.id)}"><i class="dot" style="--sc:${spaceColor(g.id)}"></i><span style="flex:1;min-width:0"><b>${esc(g.name)}</b><br><span class="muted" style="font-size:.82rem">${state.members.filter(mm=>(mm.groups||[]).includes(g.id)).length} ${esc(t('members').toLowerCase())}</span></span></button>`).join('')}<div class="btnrow" style="margin-top:10px"><button class="btn" data-act="new-circle">${esc(t('addCircle'))}</button></div></div>`;
-    h+=`<div class="panel"><h2>${esc(t('members'))}</h2><p class="note">${esc(t('membersNote'))}</p>${state.members.map(mm=>`<button class="subj" data-act="edit-member" data-id="${esc(mm.id)}"><span style="flex:1;min-width:0"><b>${esc(mm.name||mm.id)}</b>${mm.id===state.email?` <span class="muted">(${esc(t('youTag'))})</span>`:''}<br><span class="muted" style="font-size:.82rem">${esc(mm.id)} · ${esc((mm.groups||[]).map(g=>(group(g)||{}).name).filter(Boolean).join(', ')||t('noCircle'))}</span></span></button>`).join('')}<div class="btnrow" style="margin-top:10px"><button class="btn" data-act="new-member">${esc(t('addMember'))}</button></div><p class="note" style="margin:10px 0 0">${esc(t('inviteHint'))}</p></div>`;
+    h+=`<div class="panel"><h2>${esc(t('members'))}</h2><p class="note">${esc(t('membersNote'))}</p>${state.members.map(mm=>`<button class="subj" data-act="edit-member" data-id="${esc(mm.id)}"><span style="flex:1;min-width:0"><b>${esc(mm.name||mm.id)}</b>${mm.id===state.email?` <span class="muted">(${esc(t('youTag'))})</span>`:''}<br><span class="muted" style="font-size:.82rem">${esc(mm.id)}${(mm.profiles||[]).length?' · '+esc(mm.profiles.map(p=>p.name).join(', ')):''} · ${esc((mm.groups||[]).map(g=>(group(g)||{}).name).filter(Boolean).join(', ')||t('noCircle'))}</span></span></button>`).join('')}<div class="btnrow" style="margin-top:10px"><button class="btn" data-act="new-member">${esc(t('addMember'))}</button></div><p class="note" style="margin:10px 0 0">${esc(t('inviteHint'))}</p></div>`;
   }
   h+=`<div class="panel"><h2>${esc(t('backup'))}</h2><p class="note">${esc(t('backupNote'))}</p><div class="btnrow"><button class="btn" data-act="export-json">${esc(t('backupJson'))}</button><button class="btn" data-act="export-csv">${esc(t('backupCsv'))}</button></div>
    <div class="field" style="margin-top:12px"><label for="import-file">${esc(t('restore'))}</label><input type="file" id="import-file" accept=".json,application/json"></div>${state.importData?`<div class="banner" style="margin:10px 0 0;flex-direction:column"><span>${t('importSummary',{e:state.importData.events.length,t:state.importData.tasks.length,s:state.importData.subjects.length})}</span><div class="field"><label for="import-space">${esc(t('importTo'))}</label><select id="import-space">${spaceOptions(mySpaces()[1]||myPrivate())}</select></div><div class="btnrow"><button class="btn primary" data-act="import-go">${esc(t('import'))}</button><button class="btn ghost" data-act="import-cancel">${esc(t('cancel'))}</button></div></div>`:''}</div>`;
@@ -1193,13 +1219,15 @@ function openMember(mm){
   <form class="form" id="member-form" novalidate>
    <div class="field"><label for="mb-email">${esc(t('memberEmail'))}</label><input type="email" id="mb-email" value="${esc(mm.id)}" ${isNew?'':'disabled'} autocomplete="off" placeholder="prenom.nom@gmail.com"></div>
    <div class="field"><label for="mb-name">${esc(t('memberName'))}</label><input type="text" id="mb-name" maxlength="60" value="${esc(mm.name||'')}"></div>
+   <div class="field"><label for="mb-profiles">${esc(t('mbProfiles'))}</label><input type="text" id="mb-profiles" maxlength="200" value="${esc((mm.profiles||[]).map(p=>p.name).join(', '))}" placeholder="Papa, Maman"><span class="note" style="margin:2px 0 0">${esc(t('mbProfilesNote'))}</span></div>
    <div class="field"><span class="lbl">${esc(t('memberGroups'))}</span><div class="chips">${state.groups.map(g=>`<label class="chip" style="--cc:${spaceColor(g.id)}"><input type="checkbox" name="mb-g" value="${esc(g.id)}" ${(mm.groups||[]).includes(g.id)?'checked':''}><span>${esc(g.name)}</span></label>`).join('')}</div></div>
    <p class="err" id="mb-err" hidden></p>
    <div class="foot">${isNew||mm.id===state.email?'<span></span>':`<button type="button" class="btn danger" id="mb-del">${esc(t('remove'))}</button>`}<div class="r"><button type="submit" class="btn primary">${esc(t('save'))}</button></div></div></form>`,sh=>{
     sh.querySelector('#member-form').addEventListener('submit',x=>{x.preventDefault();const email=(isNew?sh.querySelector('#mb-email').value:mm.id).trim().toLowerCase();
       if(!/^[^\s@\/]+@[^\s@\/]+\.[^\s@\/]+$/.test(email)){const er=sh.querySelector('#mb-err');er.textContent=t('errEmail');er.hidden=false;return}
       const groups=[...sh.querySelectorAll('input[name=mb-g]:checked')].map(i=>i.value);closeModal();
-      run(fb.collection('members').doc(email).set({name:sh.querySelector('#mb-name').value.trim(),groups,addedAt:mm.addedAt||nowIso()},{merge:true}),'tMemberSaved')});
+      const seen=new Set(),profiles=sh.querySelector('#mb-profiles').value.split(',').map(x=>x.trim()).filter(Boolean).map(n=>({id:slug(n),name:n.slice(0,40)})).filter(p=>!seen.has(p.id)&&seen.add(p.id));
+      run(fb.collection('members').doc(email).set({name:sh.querySelector('#mb-name').value.trim(),groups,profiles,addedAt:mm.addedAt||nowIso()},{merge:true}),'tMemberSaved')});
     const del=sh.querySelector('#mb-del');if(del)del.addEventListener('click',()=>armDelete(del,()=>{closeModal();run(fb.collection('members').doc(mm.id).delete(),'tMemberRemoved')}));
   });
 }
@@ -1250,6 +1278,8 @@ document.addEventListener('click',e=>{
     case 'signin':signIn();break;
     case 'signout':auth&&auth.signOut();break;
     case 'init':initPlanner();break;
+    case 'pick-profile':ls.set(profKey(),el.dataset.id);enterApp();break;
+    case 'switch-profile':ls.set(profKey(),null);state.profile=null;state.uid=state.authUid;stopSpaces();state.phase='pick';closeModal();render();break;
     case 'lang':savePrefs({lang:el.dataset.v});break;
     case 'tab':if(app)goTab(el.dataset.tab);break;
     case 'prev':shift(-1);break;case 'next':shift(1);break;
