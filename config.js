@@ -1,15 +1,11 @@
-// Planning partagé : configuration
-// 1) Colle ici les valeurs du bloc "firebaseConfig" donné par Firebase
-//    (Paramètres du projet > Vos applications > Application Web).
-// 2) adminEmail : l'adresse Google de la personne qui gère le planning.
 window.PLANNING_CONFIG = {
   firebase: {
-    apiKey: "COLLE_ICI",
-    authDomain: "COLLE_ICI.firebaseapp.com",
-    projectId: "COLLE_ICI",
-    storageBucket: "COLLE_ICI.appspot.com",
-    messagingSenderId: "COLLE_ICI",
-    appId: "COLLE_ICI"
+    apiKey: "AIzaSyDm_t-K5pKlK4D2IXB5M9_HSAH-uxcDAmg",
+    authDomain: "shared-planning-9c8b5.firebaseapp.com",
+    projectId: "shared-planning-9c8b5",
+    storageBucket: "shared-planning-9c8b5.firebasestorage.app",
+    messagingSenderId: "130578453163",
+    appId: "1:130578453163:web:0a63df08d34fa95d7dddee"
   },
   adminEmail: "ghislain.alois@gmail.com"
 };
