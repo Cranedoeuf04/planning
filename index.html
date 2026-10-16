@@ -304,6 +304,16 @@ body{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(24px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-size:.88rem;z-index:80;max-width:calc(100% - 32px)}
 
 
+.wk.phone{grid-template-columns:40px repeat(3,minmax(0,1fr));min-width:0}
+.wstrip{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;margin:0 0 10px}
+.wsd{border:1px solid transparent;background:transparent;border-radius:12px;min-height:58px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:4px 0;font:inherit;color:var(--ink);min-width:0}
+.wsd small{font-size:.68rem;color:var(--muted)}
+.wsd b{font-family:var(--f-mono);font-size:1rem;font-weight:600;line-height:1.1}
+.wsd .dots{display:flex;gap:2px;height:5px}
+.wsd .dots i{width:5px;height:5px;border-radius:50%;background:var(--cc)}
+.wsd.in{background:var(--surface);border-color:var(--line)}
+.wsd.today b,.wsd.today small{color:var(--accent-text);font-weight:700}
+.wsd.off{opacity:.45}
 /* ---------- Pilotage: rail, KPI tiles, filter bar, filter drawer, busy events ---------- */
 .rail-logo{display:none;place-items:center;width:42px;height:42px;border-radius:12px;background:var(--accent);color:var(--accent-ink);font-weight:700;font-size:1.1rem;margin-bottom:12px;flex:none}
 .top .btn.icon{border-radius:12px}
@@ -364,6 +374,11 @@ button.kpi:hover{border-color:var(--muted)}
   .rail-logo{display:grid}
 }
 @media (max-width:760px){
+  .app{overflow-x:clip}
+  .wk-wrap{overflow:hidden}
+  .wk-h,.wk-corner{position:static}
+  .wk-times span{right:4px;font-size:.62rem}
+  .wk-h{padding:6px 6px}
   .kpis{grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
   .kpi{padding:8px 9px;border-radius:12px}
   .kpi .k{font-size:.7rem;gap:4px}
@@ -1217,38 +1232,59 @@ function nextCard(){
 }
 
 /* ----- Week ----- */
+/* on a phone the week shows 3 days at a time (no sideways scrolling), with a 7-day strip above */
+const phoneMQ=window.matchMedia?window.matchMedia('(max-width:760px)'):null;
+const isPhone=()=>!!(phoneMQ&&phoneMQ.matches);
+if(phoneMQ){const f=()=>render();if(phoneMQ.addEventListener)phoneMQ.addEventListener('change',f);else if(phoneMQ.addListener)phoneMQ.addListener(f)}
+const skipDay=d=>state.hideWE&&wd(d)>5;
+function phoneDays(c){const out=[];let d=c;while(out.length<3){if(!skipDay(d))out.push(d);d=addDays(d,1)}return out}
+function weekStrip(ws,shown){
+  const today=todayStr();
+  return `<div class="wstrip" role="group" aria-label="${esc(t('thisWeek'))}">${[...Array(7)].map((_,i)=>{
+    const d=addDays(ws,i),items=dayItems(d),on=shown.includes(d);
+    const dots=[...new Set(items.slice(0,8).map(it=>evColor(it.ev)))].slice(0,3).map(c=>`<i style="--cc:${c}"></i>`).join('');
+    return `<button class="wsd${on?' in':''}${d===today?' today':''}${skipDay(d)?' off':''}" data-act="mcursor" data-date="${d}" aria-pressed="${on}" aria-label="${esc(t('moAria',{d:fmtLong(d),n:items.length}))}"><small>${esc(N.dow[i])}</small><b>${parseD(d).getDate()}</b><span class="dots">${dots}</span></button>`;
+  }).join('')}</div>`;
+}
 function renderSemaine(){
-  const ws=weekStart(state.cursor),today=todayStr(),days=[...Array(state.hideWE?5:7)].map((_,i)=>addDays(ws,i));
-  const k=weekKpis(ws),per=k.per.slice(0,days.length);
+  const phone=isPhone(),today=todayStr();
+  let cur=state.cursor;if(phone&&skipDay(cur))cur=addDays(cur,8-wd(cur));
+  const ws=weekStart(cur);
+  const days=phone?phoneDays(cur):[...Array(state.hideWE?5:7)].map((_,i)=>addDays(ws,i));
+  const k=weekKpis(ws),per=days.map(d=>dayItems(d));
   const ud=state.userDoc||{};
   let sH=+(ud.dayStart??7),eH=+(ud.dayEnd??21);
   per.flat().forEach(i=>{if(i.s>=0){sH=Math.min(sH,Math.floor(i.s/60));eH=Math.max(eH,Math.ceil(i.e/60))}});
   eH=Math.min(24,Math.max(eH,sH+1));
   const H=48,total=(eH-sH)*H;
   const confs=per.map(items=>conflictIds(items.filter(i=>i.ev.ownerUid===state.uid&&!isBusy(i.ev))));
-  const end=addDays(ws,6),a=parseD(ws),b=parseD(end);
+  const a=parseD(days[0]),b=parseD(days[days.length-1]);
   const range=a.getMonth()===b.getMonth()?`${a.getDate()} – ${b.getDate()} ${N.monD[b.getMonth()]} ${b.getFullYear()}`:`${a.getDate()} ${N.monsD[a.getMonth()]} – ${b.getDate()} ${N.monsD[b.getMonth()]} ${b.getFullYear()}`;
-  let h=`<section class="view-head"><div><p class="eyebrow">${esc(t('weekN',{w:isoWeek(ws)}))}</p><h1>${esc(range)}</h1></div>${navBtns('thisWeek')}</section>`+filterBar();
+  let h=`<section class="view-head"><div><p class="eyebrow">${esc(t('weekN',{w:isoWeek(ws)}))}</p><h1>${esc(range)}</h1></div>${navBtns(phone?'today':'thisWeek')}</section>`+filterBar();
   h+=kpiTiles(k,ws);
-  const hasAD=per.some(l=>l.some(i=>i.s<0));
-  let g=`<div class="wk-corner"></div>`;
-  days.forEach((d,i)=>{const hol=holiday(d);g+=`<button class="wk-h${d===today?' today':''}" data-act="goto-day" data-date="${d}">${esc(N.dow[i])}<b>${parseD(d).getDate()}</b>${hol?`<span class="hol">${esc(hol)}</span>`:''}</button>`});
-  if(hasAD){g+=`<div class="wk-adlabel">${esc(t('wkAllDay'))}</div>`;per.forEach(l=>{g+=`<div class="wk-ad">${l.filter(i=>i.s<0).map(i=>`<button class="chipev${isBusy(i.ev)?' busy':''}" data-act="open-ev" data-id="${esc(i.ev.id)}" data-date="${i.d}" style="--cc:${evColor(i.ev)}">${esc(isBusy(i.ev)?busyLabel(i.ev):i.ev.title)}</button>`).join('')}</div>`})}
-  g+=`<div class="wk-times" style="height:${total}px">${[...Array(eH-sH)].map((_,k)=>k?`<span style="top:${k*H}px">${pad(sH+k)}:00</span>`:'').join('')}</div>`;
+  if(phone)h+=weekStrip(ws,days);
+  const hasAD=per.some(l=>l.some(i=>i.s<0)),R=hasAD?3:2;
+  /* every cell gets an explicit row and column, so nothing can slide into the hour column */
+  const at=(r,c)=>`grid-row:${r};grid-column:${c}`;
+  let g=`<div class="wk-corner" style="${at(1,1)}"></div>`;
+  days.forEach((d,i)=>{const hol=holiday(d);g+=`<button class="wk-h${d===today?' today':''}" data-act="goto-day" data-date="${d}" style="${at(1,i+2)}">${esc(N.dow[wd(d)-1])}<b>${parseD(d).getDate()}</b>${hol?`<span class="hol">${esc(hol)}</span>`:''}</button>`});
+  if(hasAD){g+=`<div class="wk-adlabel" style="${at(2,1)}">${esc(t('wkAllDay'))}</div>`;per.forEach((l,i)=>{g+=`<div class="wk-ad" style="${at(2,i+2)}">${l.filter(x=>x.s<0).map(x=>`<button class="chipev${isBusy(x.ev)?' busy':''}" data-act="open-ev" data-id="${esc(x.ev.id)}" data-date="${x.d}" style="--cc:${evColor(x.ev)}">${esc(isBusy(x.ev)?busyLabel(x.ev):x.ev.title)}</button>`).join('')}</div>`})}
+  g+=`<div class="wk-times" style="${at(R,1)};height:${total}px">${[...Array(eH-sH)].map((_,n)=>n?`<span style="top:${n*H}px">${pad(sH+n)}:00</span>`:'').join('')}</div>`;
   const nm=nowMin();
   days.forEach((d,di)=>{
     const Ln=lanes(per[di]),conf=confs[di];
-    let col=`<div class="wk-col${d===today?' is-today':''}${holiday(d)?' is-hol':''}" data-act="slot" data-date="${d}" data-sh="${sH}" style="height:${total}px">`;
+    let col=`<div class="wk-col${d===today?' is-today':''}${holiday(d)?' is-hol':''}" data-act="slot" data-date="${d}" data-sh="${sH}" style="${at(R,di+2)};height:${total}px">`;
     per[di].filter(i=>i.s>=0).forEach(i=>{
       const p=Ln.get(i)||{lane:0,n:1},top=(i.s-sH*60)/60*H,ht=Math.max(20,(i.e-i.s)/60*H-2),s=subj(i.ev.subject);
       const who=i.ev.ownerUid!==state.uid?(state.profiles[i.ev.ownerUid]||{}).name:'';
-      if(isBusy(i.ev)){col+=`<div class="wk-ev busy" title="${esc(busyLabel(i.ev))} ${hm(i.s)}–${hm(i.e)}" style="--cc:${evColor(i.ev)};top:${top}px;height:${ht}px;left:calc(${p.lane} * 100% / ${p.n});width:calc(100% / ${p.n} - 4px)"><span class="t">${hm(i.s)}–${hm(i.e)}</span><span class="n">${esc(busyLabel(i.ev))}</span></div>`;return}
-      col+=`<button class="wk-ev${conf.has(i.ev.id)?' conf':''}" data-act="open-ev" data-id="${esc(i.ev.id)}" data-date="${i.occ||d}" title="${esc(i.ev.title)} ${hm(i.s)}–${hm(i.e)}" style="--cc:${evColor(i.ev)};top:${top}px;height:${ht}px;left:calc(${p.lane} * 100% / ${p.n});width:calc(100% / ${p.n} - 4px)"><span class="t">${hm(i.s)}–${hm(i.e)}</span><span class="n">${esc(i.ev.title)}</span>${ht>52?`<span class="m">${esc([who,s&&(s.code||s.name),i.ev.location].filter(Boolean).join(' · '))}</span>`:''}</button>`;
+      const pos=`--cc:${evColor(i.ev)};top:${top}px;height:${ht}px;left:calc(${p.lane} * 100% / ${p.n});width:calc(100% / ${p.n} - 4px)`;
+      if(isBusy(i.ev)){col+=`<div class="wk-ev busy" title="${esc(busyLabel(i.ev))} ${hm(i.s)}–${hm(i.e)}" style="${pos}"><span class="t">${hm(i.s)}–${hm(i.e)}</span><span class="n">${esc(busyLabel(i.ev))}</span></div>`;return}
+      col+=`<button class="wk-ev${conf.has(i.ev.id)?' conf':''}" data-act="open-ev" data-id="${esc(i.ev.id)}" data-date="${i.occ||d}" title="${esc(i.ev.title)} ${hm(i.s)}–${hm(i.e)}" style="${pos}"><span class="t">${hm(i.s)}–${hm(i.e)}</span><span class="n">${esc(i.ev.title)}</span>${ht>52?`<span class="m">${esc([who,s&&(s.code||s.name),i.ev.location].filter(Boolean).join(' · '))}</span>`:''}</button>`;
     });
     if(d===today&&nm>=sH*60&&nm<=eH*60)col+=`<div class="nowline" style="top:${(nm-sH*60)/60*H}px"></div>`;
     g+=col+'</div>';
   });
-  h+=`<div class="wk-wrap"><div class="wk${state.hideWE?' no-we':''}">${g}</div></div><p class="note" style="margin-top:8px">${esc(t('wkHint'))}</p>`;
+  h+=`<div class="wk-wrap"><div class="wk${phone?' phone':state.hideWE?' no-we':''}">${g}</div></div><p class="note" style="margin-top:8px">${esc(t('wkHint'))}</p>`;
   return loadingOr(h);
 }
 
@@ -1538,7 +1574,10 @@ async function runImport(){
 function goTab(x){state.tab=x;remember();try{history.replaceState(null,'','#'+x)}catch(e){}window.scrollTo(0,0);render()}
 function shift(dir){
   if(state.tab==='jour')state.cursor=addDays(state.cursor,dir);
-  else if(state.tab==='semaine')state.cursor=addDays(state.cursor,7*dir);
+  else if(state.tab==='semaine'){
+    if(isPhone()){let d=state.cursor;if(dir>0)d=addDays(phoneDays(d)[2],1);else{let n=0;while(n<3){d=addDays(d,-1);if(!skipDay(d))n++}}state.cursor=d}
+    else state.cursor=addDays(state.cursor,7*dir);
+  }
   else{const d=parseD(state.cursor);d.setDate(1);d.setMonth(d.getMonth()+dir);state.cursor=toStr(d)}
   render();
 }
@@ -1559,6 +1598,7 @@ document.addEventListener('click',e=>{
     case 'today':state.cursor=todayStr();render();break;
     case 'close':closeModal();break;
     case 'goto-day':state.cursor=el.dataset.date;goTab('jour');break;
+    case 'mcursor':state.cursor=el.dataset.date;render();break;
     case 'new-ev':if(app)openEditor(null,null,{date:el.dataset.date,cat:el.dataset.cat});break;
     case 'open-ev':{const ev=findEv(el.dataset.id);if(ev)openEditor(ev,el.dataset.date);break}
     case 'slot':{const r=el.getBoundingClientRect(),sh=+el.dataset.sh,m=Math.max(0,Math.round(((e.clientY-r.top)/48*60)/30)*30)+sh*60;openEditor(null,null,{date:el.dataset.date,start:hm(Math.min(m,1380))});break}
