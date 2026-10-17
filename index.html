@@ -1331,7 +1331,7 @@ function openFilters(){
   const c=ov.querySelector('.sheet-head [data-act="close"]');if(c)c.focus();
 }
 function refreshFilters(){
-  const sh=document.querySelector('#overlay .sheet.drawer');if(!sh)return;
+  const sh=document.querySelector('#overlay .sheet.drawer:not(.notifs)');if(!sh)return;
   const inp=sh.querySelector('#view-name'),v=inp?inp.value:'',sc=sh.scrollTop,foc=document.activeElement&&sh.contains(document.activeElement)?document.activeElement.id:'';
   sh.innerHTML=filterPanel();
   const ni=sh.querySelector('#view-name');if(ni)ni.value=v;sh.scrollTop=sc;if(foc){const f=sh.querySelector('#'+CSS.escape(foc));if(f)f.focus()}
