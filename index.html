@@ -857,7 +857,14 @@ const spaceColor=sid=>{if(sid===myPrivate())return 'var(--muted)';const g=group(
 const subj=id=>state.subjects.find(s=>s.id===id);
 const sColor=s=>`var(--s${(s&&Number.isInteger(s.color))?s.color%8:7})`;
 const personColor=uid=>{const p=state.profiles[uid];return `var(--s${p&&Number.isInteger(p.color)?p.color%8:hash(uid)%8})`};
-const personName=uid=>{const p=state.profiles[uid];const n=(p&&p.name)||(p&&p.email)||t('someone');return uid===state.uid?`${n} (${t('youTag')})`:n};
+/* shared account: "<account>:<person>" → the person's first name from the account's list of people */
+function sharedName(uid){
+  const i=String(uid||'').indexOf(':');if(i<0)return '';
+  const pid=uid.slice(i+1),base=state.profiles[uid.slice(0,i)]||{};
+  const m=state.members.find(x=>x.id===base.email)||(state.member&&uid.slice(0,i)===state.authUid?state.member:null);
+  const p=m&&(m.profiles||[]).find(x=>x&&x.id===pid);return p?p.name:'';
+}
+const personName=uid=>{const p=state.profiles[uid];const n=sharedName(uid)||(p&&p.name)||(p&&p.email)||t('someone');return uid===state.uid?`${n} (${t('youTag')})`:n};
 const canEdit=x=>!!x&&(x.ownerUid===state.uid||(x.common===true&&x._space!==myPrivate())||state.isAdmin);
 function evColor(ev){
   const by=state.prefs.colorBy;
