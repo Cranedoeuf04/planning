@@ -1,0 +1,13 @@
+{
+  "name": "Planning partagé",
+  "short_name": "Planning",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#F4F5F7",
+  "theme_color": "#F4F5F7",
+  "lang": "fr",
+  "icons": [
+    { "src": "icone.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}

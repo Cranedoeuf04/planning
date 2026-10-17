@@ -9,6 +9,7 @@
 <meta name="theme-color" content="#F4F5F7">
 <script>try{var th=JSON.parse(localStorage.getItem('planning.theme'));if(th==='light'||th==='dark')document.documentElement.setAttribute('data-theme',th)}catch(e){}</script>
 <link rel="apple-touch-icon" href="icone.png">
+<link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icone.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -305,6 +306,19 @@ body{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset
 
 
 .wk.phone{grid-template-columns:40px repeat(3,minmax(0,1fr));min-width:0}
+.wk-h .vac{display:block;font-size:.66rem;color:var(--s7);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wk-col.is-vac:not(.is-today){background-color:color-mix(in srgb,var(--s7) 8%,var(--surface))}
+.mo-cell.is-vac{background:color-mix(in srgb,var(--s7) 9%,var(--surface))}
+.mo-cell.is-vac.out{background:color-mix(in srgb,var(--s7) 6%,var(--surface-2))}
+.mo-vac{font-size:.64rem;color:var(--s7);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wsd.vac{background:color-mix(in srgb,var(--s7) 12%,transparent)}
+.wsd.vac.in{background:color-mix(in srgb,var(--s7) 12%,var(--surface))}
+.note.vac{color:var(--s7);font-weight:600}
+.btn.bell{position:relative}
+.btn.bell .badge{position:absolute;top:-5px;right:-5px;min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:var(--danger);color:#FFFFFF;font-family:var(--f-mono);font-size:.68rem;font-weight:600;line-height:18px;text-align:center}
+.notifs .row{align-items:flex-start}
+.notifs .row .dot{margin-top:4px}
+
 .wstrip{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;margin:0 0 10px}
 .wsd{border:1px solid transparent;background:transparent;border-radius:12px;min-height:58px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:4px 0;font:inherit;color:var(--ink);min-width:0}
 .wsd small{font-size:.68rem;color:var(--muted)}
@@ -406,7 +420,7 @@ button.kpi:hover{border-color:var(--muted)}
   .fab{display:grid;place-items:center;position:fixed;right:calc(16px + env(safe-area-inset-right,0px));bottom:calc(78px + env(safe-area-inset-bottom,0px));width:54px;height:54px;border-radius:50%;border:0;background:var(--accent);color:var(--accent-ink);box-shadow:0 8px 24px rgba(0,0,0,.25);z-index:31}
   .fab svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round}
   .mo-cell{min-height:58px;padding:4px}
-  .mo-list,.mo-more,.mo-hol{display:none}
+  .mo-list,.mo-more,.mo-hol,.mo-vac{display:none}
   .mo-dots{display:flex}
   .tiles{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
   .overlay{align-items:flex-end;padding:0}
@@ -424,6 +438,7 @@ button.kpi:hover{border-color:var(--muted)}
   <header class="top">
     <div class="brand"><b>Planning</b><span id="hdr-sub"></span></div>
     <span class="sync" id="sync" data-s="loading"><i></i><span>Connexion…</span></span>
+    <button class="btn icon bell" id="btn-bell" data-act="notifs" aria-label="Notifications" hidden></button>
     <button class="btn icon" id="btn-theme" data-act="theme-flip" aria-label="Thème"></button>
     <button class="btn primary new" id="btn-new" data-act="new-ev" hidden><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Nouvel évènement</button>
     <button class="btn icon" id="btn-gear" data-act="tab" data-tab="reglages" aria-label="Réglages et partage" title="Réglages et partage"><svg viewBox="0 0 24 24"><path d="M4 7h9M17 7h3M4 17h4M12 17h8"/><circle cx="15" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></button>
@@ -439,6 +454,7 @@ button.kpi:hover{border-color:var(--muted)}
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js"></script>
 <script>
 (function(){
 "use strict";
@@ -696,6 +712,24 @@ Object.assign(L.en,{theme:'Theme',appearance:'Appearance',thAuto:'Auto',thLight:
 Object.assign(L.nl,{theme:'Thema',appearance:'Uiterlijk',thAuto:'Auto',thLight:'Licht',thDark:'Donker',thAutoNote:'Auto volgt de instelling van je toestel (pc, iPad, iPhone).',toLight:'Naar licht thema',toDark:'Naar donker thema',filters:'Filters',filtersTitle:'Tonen',viewLbl:'Weergave',viewAll:'Alles',viewCustom:'Aangepast',views:'Opgeslagen weergaven',saveView:'Opslaan',viewNamePh:'Naam, bv. Ik + Valeriya',delView:'Weergave „{n}” verwijderen',mDetail:'Details',mBusy:'Bezet',mHide:'Verborgen',modesNote:'Details: alles zien · Bezet: alleen de uren · Verborgen: niets',busyOf:'{n} · bezet',hideWE:'Weekend verbergen in de weekweergave',showAll:'Alles tonen',hiddenN:'{n} verborgen',noneHidden:'alles zichtbaar',fCircles:'Kringen',fPeople:'Personen',display:'Opties',tViewSaved:'Weergave opgeslagen',tViewDeleted:'Weergave verwijderd',errViewName:'Geef de weergave een naam.',kpiWeek:'week {w}',kpiMine:'jouw activiteiten in detail',kpiConf:'Conflicten',kpiConfSub:'in jouw rooster',kpiOverlap:'{n} overlapping(en) in totaal',kpiNoJob:'geen shifts',nextLbl:'Hierna',saveViewHint:'Stel de filters hieronder in en sla ze op onder een naam om er met één klik naar terug te gaan.'});
 Object.assign(L.ru,{theme:'Тема',appearance:'Оформление',thAuto:'Авто',thLight:'Светлая',thDark:'Тёмная',thAutoNote:'«Авто» следует настройке устройства (ПК, iPad, iPhone).',toLight:'Включить светлую тему',toDark:'Включить тёмную тему',filters:'Фильтры',filtersTitle:'Показать',viewLbl:'Вид',viewAll:'Всё',viewCustom:'Свой',views:'Сохранённые виды',saveView:'Сохранить',viewNamePh:'Название, например «Я + Валерия»',delView:'Удалить вид «{n}»',mDetail:'Подробно',mBusy:'Занят',mHide:'Скрыто',modesNote:'Подробно — всё видно · Занят — только время · Скрыто — ничего',busyOf:'{n} · занят(а)',hideWE:'Скрыть выходные на неделе',showAll:'Показать всё',hiddenN:'Скрыто: {n}',noneHidden:'всё видно',fCircles:'Круги',fPeople:'Люди',display:'Отображение',tViewSaved:'Вид сохранён',tViewDeleted:'Вид удалён',errViewName:'Укажи название вида.',kpiWeek:'неделя {w}',kpiMine:'твои события, показанные подробно',kpiConf:'Конфликты',kpiConfSub:'в твоём расписании',kpiOverlap:'Всего наложений: {n}',kpiNoJob:'нет смен',nextLbl:'Далее',saveViewHint:'Настрой фильтры ниже и сохрани их под названием, чтобы вернуться в один клик.'});
 
+
+Object.assign(L.fr,{vac_aut:"Congé d'automne",vac_hiv:"Vacances d'hiver",vac_det:'Congé de détente',vac_pri:'Vacances de printemps',vac_ete:"Vacances d'été",vacNote:'Vacances scolaires : {n}, du {a} au {b}',vacNext:'Prochaines vacances scolaires : {n}, dans {k} jour(s) ({a})',beCalCircle:'Calendrier belge : vacances scolaires et jours fériés',beCalCircleNote:"À décocher pour un cercle qui ne suit pas l'école belge (par exemple School Valeriya).",beCalPref:'Vacances scolaires et jours fériés belges'});
+Object.assign(L.en,{vac_aut:'Autumn break',vac_hiv:'Winter holidays',vac_det:'Carnival break',vac_pri:'Spring holidays',vac_ete:'Summer holidays',vacNote:'School holidays: {n}, from {a} to {b}',vacNext:'Next school holidays: {n}, in {k} day(s) ({a})',beCalCircle:'Belgian calendar: school holidays and public holidays',beCalCircleNote:'Untick for a circle that does not follow Belgian schools (for example School Valeriya).',beCalPref:'Belgian school and public holidays'});
+Object.assign(L.nl,{vac_aut:'Herfstvakantie',vac_hiv:'Wintervakantie',vac_det:'Krokusvakantie',vac_pri:'Lentevakantie',vac_ete:'Zomervakantie',vacNote:'Schoolvakantie: {n}, van {a} tot {b}',vacNext:'Volgende schoolvakantie: {n}, over {k} dag(en) ({a})',beCalCircle:'Belgische kalender: schoolvakanties en feestdagen',beCalCircleNote:'Uitvinken voor een kring die de Belgische school niet volgt (bijvoorbeeld School Valeriya).',beCalPref:'Belgische schoolvakanties en feestdagen'});
+Object.assign(L.ru,{vac_aut:'Осенние каникулы',vac_hiv:'Зимние каникулы',vac_det:'Карнавальные каникулы',vac_pri:'Весенние каникулы',vac_ete:'Летние каникулы',vacNote:'Школьные каникулы: {n}, с {a} по {b}',vacNext:'Следующие школьные каникулы: {n}, через {k} дн. ({a})',beCalCircle:'Бельгийский календарь: школьные каникулы и праздники',beCalCircleNote:'Сними отметку для круга, который не следует бельгийской школе (например, School Valeriya).',beCalPref:'Бельгийские школьные каникулы и праздники'});
+
+
+Object.assign(L.fr,{vacSkip:'Pas pendant les vacances scolaires ni les jours fériés belges',pauseVac:'Évènements répétés en pause pendant les vacances scolaires et les jours fériés',pauseVacNote:"Pratique pour un horaire de cours fixe, comme celui de Papa. Chaque évènement peut aussi le régler lui-même.",notifTitle:'Notifications',bellAria:'Notifications',bellAriaN:'Notifications, {n} nouveauté(s)',notifEmpty:'Rien de nouveau depuis ta dernière visite.',notifSince:'Depuis ta dernière visite',nAdded:'{a} a ajouté',nEdited:'{a} a modifié',nDone:'{a} a terminé',nMany:'{a} a modifié {n} éléments',notifNote:"Les suppressions ne sont pas signalées. Les alertes s'affichent quand le site est ouvert.",notifPref:"Afficher une alerte quand quelqu'un modifie le planning",notifDevice:'Aussi en notification sur cet appareil',notifDenied:'Notifications bloquées par le navigateur : autorise-les dans ses réglages.',notifUnsup:"Cet appareil n'accepte pas les notifications du site.",justNow:"à l'instant",agoMin:'il y a {n} min',agoH:'il y a {n} h',agoD:'il y a {n} j'});
+Object.assign(L.en,{vacSkip:'Not during Belgian school holidays or public holidays',pauseVac:'Repeating events paused during school and public holidays',pauseVacNote:'Handy for a fixed teaching timetable. Each event can also set this itself.',notifTitle:'Notifications',bellAria:'Notifications',bellAriaN:'Notifications, {n} new',notifEmpty:'Nothing new since your last visit.',notifSince:'Since your last visit',nAdded:'{a} added',nEdited:'{a} edited',nDone:'{a} completed',nMany:'{a} edited {n} items',notifNote:'Deletions are not reported. Alerts show while the site is open.',notifPref:'Show an alert when someone changes the planner',notifDevice:'Also as a notification on this device',notifDenied:'Notifications are blocked by the browser: allow them in its settings.',notifUnsup:'This device does not accept notifications from the site.',justNow:'just now',agoMin:'{n} min ago',agoH:'{n} h ago',agoD:'{n} d ago'});
+Object.assign(L.nl,{vacSkip:'Niet tijdens Belgische schoolvakanties of feestdagen',pauseVac:'Herhaalde activiteiten gepauzeerd tijdens schoolvakanties en feestdagen',pauseVacNote:'Handig voor een vast lesrooster. Elke activiteit kan dit ook zelf instellen.',notifTitle:'Meldingen',bellAria:'Meldingen',bellAriaN:'Meldingen, {n} nieuw',notifEmpty:'Niets nieuws sinds je laatste bezoek.',notifSince:'Sinds je laatste bezoek',nAdded:'{a} heeft toegevoegd',nEdited:'{a} heeft gewijzigd',nDone:'{a} heeft afgewerkt',nMany:'{a} heeft {n} items gewijzigd',notifNote:'Verwijderingen worden niet gemeld. Meldingen verschijnen als de site open is.',notifPref:'Melding tonen als iemand de planning wijzigt',notifDevice:'Ook als melding op dit toestel',notifDenied:'Meldingen zijn geblokkeerd door de browser: sta ze toe in de instellingen.',notifUnsup:'Dit toestel aanvaardt geen meldingen van de site.',justNow:'zonet',agoMin:'{n} min geleden',agoH:'{n} u geleden',agoD:'{n} d geleden'});
+Object.assign(L.ru,{vacSkip:'Не во время бельгийских школьных каникул и праздников',pauseVac:'Повторяющиеся события на паузе во время каникул и праздников',pauseVacNote:'Удобно для постоянного расписания уроков. Каждое событие может настроить это и само.',notifTitle:'Уведомления',bellAria:'Уведомления',bellAriaN:'Уведомления, новых: {n}',notifEmpty:'Ничего нового с последнего визита.',notifSince:'С последнего визита',nAdded:'{a} добавил(а)',nEdited:'{a} изменил(а)',nDone:'{a} выполнил(а)',nMany:'{a} изменил(а) {n} записей',notifNote:'Об удалениях не сообщается. Оповещения видны, пока сайт открыт.',notifPref:'Показывать оповещение, когда кто-то меняет планировщик',notifDevice:'Также уведомлением на этом устройстве',notifDenied:'Уведомления заблокированы браузером: разреши их в настройках.',notifUnsup:'Это устройство не принимает уведомления от сайта.',justNow:'только что',agoMin:'{n} мин назад',agoH:'{n} ч назад',agoD:'{n} дн. назад'});
+
+
+Object.assign(L.fr,{notifDevicePush:'Recevoir les notifications sur cet appareil, même site fermé',notifIOS:"Sur iPhone et iPad : ajoute d'abord le site à l'écran d'accueil (Safari → Partager → « Sur l'écran d'accueil »), ouvre-le depuis l'icône, puis reviens ici.",pushOk:'Notifications activées sur cet appareil',pushFail:"Impossible d'activer les notifications sur cet appareil. Réessaie dans un instant.",notifNotePush:"Les suppressions arrivent par notification, mais n'apparaissent pas dans cette liste."});
+Object.assign(L.en,{notifDevicePush:'Get notifications on this device, even with the site closed',notifIOS:'On iPhone and iPad: first add the site to the Home Screen (Safari → Share → “Add to Home Screen”), open it from the icon, then come back here.',pushOk:'Notifications turned on for this device',pushFail:'Could not turn on notifications on this device. Try again in a moment.',notifNotePush:'Deletions arrive as notifications but do not show in this list.'});
+Object.assign(L.nl,{notifDevicePush:'Meldingen ontvangen op dit toestel, ook als de site dicht is',notifIOS:'Op iPhone en iPad: zet de site eerst op het beginscherm (Safari → Deel → „Zet op beginscherm”), open ze via het icoon en kom dan hier terug.',pushOk:'Meldingen ingeschakeld op dit toestel',pushFail:'Meldingen konden niet worden ingeschakeld op dit toestel. Probeer het zo meteen opnieuw.',notifNotePush:'Verwijderingen komen als melding, maar staan niet in deze lijst.'});
+Object.assign(L.ru,{notifDevicePush:'Получать уведомления на этом устройстве, даже когда сайт закрыт',notifIOS:'На iPhone и iPad: сначала добавь сайт на экран «Домой» (Safari → Поделиться → «На экран „Домой“»), открой его с иконки и вернись сюда.',pushOk:'Уведомления включены на этом устройстве',pushFail:'Не удалось включить уведомления на этом устройстве. Попробуй ещё раз чуть позже.',notifNotePush:'Об удалениях приходит уведомление, но в этом списке их нет.'});
+
 /* ---------- helpers ---------- */
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -759,6 +793,7 @@ const ICON={
  check:'<svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
  plus:'<svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>',
  filter:'<svg viewBox="0 0 24 24"><path d="M3 5h18l-7 8v6l-4-2v-4L3 5z"/></svg>',
+ bell:'<svg viewBox="0 0 24 24"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>',
  sun:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>',
  moon:'<svg viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>',
  google:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21.6 12.2c0-.7-.1-1.4-.2-2H12v3.8h5.4a4.6 4.6 0 0 1-2 3v2.5h3.2c1.9-1.7 3-4.3 3-7.3z" fill="#4285F4" stroke="none"/><path d="M12 22c2.7 0 5-.9 6.6-2.4l-3.2-2.5c-.9.6-2 1-3.4 1-2.6 0-4.8-1.8-5.6-4.1H3.1v2.6A10 10 0 0 0 12 22z" fill="#34A853" stroke="none"/><path d="M6.4 14c-.2-.6-.3-1.3-.3-2s.1-1.4.3-2V7.4H3.1a10 10 0 0 0 0 9.2L6.4 14z" fill="#FBBC05" stroke="none"/><path d="M12 5.9c1.5 0 2.8.5 3.8 1.5l2.9-2.9A10 10 0 0 0 3.1 7.4L6.4 10c.8-2.3 3-4.1 5.6-4.1z" fill="#EA4335" stroke="none"/></svg>'
@@ -777,7 +812,15 @@ function holidays(y){
   const easter=`${y}-${pad(mo)}-${pad(da)}`;
   return holCache[y]={[`${y}-01-01`]:'h_ny',[addDays(easter,1)]:'h_em',[`${y}-05-01`]:'h_may',[addDays(easter,39)]:'h_asc',[addDays(easter,50)]:'h_pm',[`${y}-07-21`]:'h_nat',[`${y}-08-15`]:'h_aug',[`${y}-09-27`]:'h_fwb',[`${y}-11-01`]:'h_nov1',[`${y}-11-11`]:'h_arm',[`${y}-12-25`]:'h_xmas'};
 }
-const holiday=s=>{const k=holidays(+s.slice(0,4))[s];return k?t(k):''};
+const holidayRaw=s=>{const k=holidays(+s.slice(0,4))[s];return k?t(k):''};
+/* School holidays of the Fédération Wallonie-Bruxelles (official dates, Monday to Friday; summer runs Saturday to Sunday).
+   Add the next school years here once the FWB publishes them. */
+const BE_SCHOOL=[
+ ['vac_aut','2025-10-20','2025-10-31'],['vac_hiv','2025-12-22','2026-01-02'],['vac_det','2026-02-16','2026-02-27'],['vac_pri','2026-04-27','2026-05-08'],['vac_ete','2026-07-04','2026-08-23'],
+ ['vac_aut','2026-10-19','2026-10-30'],['vac_hiv','2026-12-21','2027-01-01'],['vac_det','2027-02-22','2027-03-05'],['vac_pri','2027-04-26','2027-05-07'],['vac_ete','2027-07-03','2027-08-29'],
+ ['vac_aut','2027-10-25','2027-11-05'],['vac_hiv','2027-12-27','2028-01-07'],['vac_det','2028-02-28','2028-03-10'],['vac_pri','2028-05-01','2028-05-12'],['vac_ete','2028-07-08','2028-08-27']
+].map(([k,a,b])=>({k,from:wd(a)===1?addDays(a,-2):a,to:wd(b)===5?addDays(b,2):b}));
+const schoolRaw=s=>BE_SCHOOL.find(v=>s>=v.from&&s<=v.to)||null;
 
 /* ---------- state ---------- */
 const ls={get(k,d){try{const v=JSON.parse(localStorage.getItem(k));return v??d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
@@ -796,7 +839,7 @@ const state={
   loadedSpaces:new Set(),pending:false,fromCache:false,offline:!navigator.onLine,
   taskFilter:ui.taskFilter||'todo',taskSubj:'',
   scrolledWeek:null,importData:null,signErr:false,
-  prefs:{lang:localPrefs.lang||(LANGS[navLang]?navLang:'fr'),colorBy:localPrefs.colorBy||'person',tz:validTz(localPrefs.tz)?localPrefs.tz:BROWSER_TZ},
+  prefs:{lang:localPrefs.lang||(LANGS[navLang]?navLang:'fr'),colorBy:localPrefs.colorBy||'person',tz:validTz(localPrefs.tz)?localPrefs.tz:BROWSER_TZ,beCal:typeof localPrefs.beCal==='boolean'?localPrefs.beCal:null,notif:localPrefs.notif!==false},
   hidden:{people:new Set(hiddenSaved.people||[]),spaces:new Set(hiddenSaved.spaces||[])}
 };
 setLang(state.prefs.lang);VIEW_TZ=state.prefs.tz;state.cursor=todayStr();
@@ -805,7 +848,7 @@ state.hideWE=!!hiddenSaved.hideWE;
 state.views=(ls.get('planning.views',[])||[]).filter(v=>v&&v.id&&v.name);
 {const th=ls.get('planning.theme','auto');state.theme=['light','dark','auto'].includes(th)?th:'auto'}
 function remember(){ls.set('planning.ui',{tab:state.tab,taskFilter:state.taskFilter})}
-function saveHidden(){ls.set('planning.hidden',{people:[...state.hidden.people],spaces:[...state.hidden.spaces],busyPeople:[...state.busy.people],busySpaces:[...state.busy.spaces],hideWE:state.hideWE})}
+function saveHidden(){pushRefresh&&setTimeout(pushRefresh,0);ls.set('planning.hidden',{people:[...state.hidden.people],spaces:[...state.hidden.spaces],busyPeople:[...state.busy.people],busySpaces:[...state.busy.spaces],hideWE:state.hideWE})}
 const myPrivate=()=>'u_'+state.uid;
 const mySpaces=()=>[myPrivate(),...((state.member&&state.member.groups)||[]).filter(g=>state.groups.some(x=>x.id===g))];
 const group=id=>state.groups.find(g=>g.id===id);
@@ -824,6 +867,21 @@ function evColor(ev){
   return `var(--c-${catOf(ev.cat)})`;
 }
 const visible=e=>!state.hidden.spaces.has(e._space)&&!state.hidden.people.has(e.ownerUid);
+
+/* ---------- Belgian calendar (school holidays + public holidays) ----------
+   shown only when the viewer wants it (default: their time zone is Brussels)
+   and at least one shown circle follows the Belgian calendar (a circle named after Valeriya does not, by default) */
+const circleBe=g=>!!g&&(typeof g.beCal==='boolean'?g.beCal:!/valeriya/i.test(g.name||''));
+/* repeating events can pause during school holidays: per event, else per circle (e.g. School Paps) */
+const circlePause=g=>!!(g&&g.pauseVac);
+const skipsVac=ev=>typeof ev.vacSkip==='boolean'?ev.vacSkip:circlePause(group(ev._space));
+const beWanted=()=>typeof state.prefs.beCal==='boolean'?state.prefs.beCal:VIEW_TZ==='Europe/Brussels';
+function beShown(){if(!beWanted())return false;if(state.phase!=='app')return true;return mySpaces().some(sp=>!state.hidden.spaces.has(sp)&&(sp===myPrivate()||circleBe(group(sp))))}
+function holiday(s){return beShown()?holidayRaw(s):''}
+function school(s){return beShown()?schoolRaw(s):null}
+const vacName=v=>t(v.k);
+function nextSchool(from){if(!beShown())return null;return BE_SCHOOL.find(v=>v.from>from)||null}
+
 /* "busy" = shown as a hatched block with only its times, no details */
 const isBusy=e=>state.busy.spaces.has(e._space)||state.busy.people.has(e.ownerUid);
 const full=e=>visible(e)&&!isBusy(e);
@@ -856,6 +914,7 @@ function occursOn(ev,d){
   if(!ev.date)return false;
   if((ev.exceptions||[]).includes(d))return false;
   if(!ev.recur||ev.recur==='once')return ev.date===d;
+  if(skipsVac(ev)&&(schoolRaw(d)||holidayRaw(d)))return false;
   const step=ev.recur==='biweekly'?14:7,diff=dayNum(d)-dayNum(ev.date);
   return diff>=0&&diff%step===0&&(!ev.until||d<=ev.until);
 }
@@ -926,11 +985,11 @@ function run(p,msgKey){if(msgKey)toast(t(msgKey));return p.then(()=>true,e=>{onW
 function saveItem(kind,x,data,targetSpace,msgKey){
   const id=x&&x.id?x.id:newId(),from=x&&x._space,to=targetSpace||from||myPrivate();
   if(from&&from!==to){
-    const b=fb.batch();b.set(colRef(to,kind).doc(id),data);b.delete(colRef(from,kind).doc(id));return run(b.commit(),msgKey);
+    const b=fb.batch();b.set(colRef(to,kind).doc(id),data);b.delete(colRef(from,kind).doc(id));return pushAfter(run(b.commit(),msgKey),{space:to,kind,id});
   }
-  return run(colRef(to,kind).doc(id).set(data),msgKey);
+  return pushAfter(run(colRef(to,kind).doc(id).set(data),msgKey),{space:to,kind,id});
 }
-const delItem=(kind,x,msgKey)=>run(colRef(x._space,kind).doc(x.id).delete(),msgKey);
+const delItem=(kind,x,msgKey)=>pushAfter(run(colRef(x._space,kind).doc(x.id).delete(),msgKey),{space:x._space,kind,id:x.id,deleted:true,title:String(x.title||'').slice(0,120),date:x.date||x.due||''});
 
 function stopSpaces(){unsubs.spaces.forEach(fns=>fns.forEach(f=>f()));unsubs.spaces.clear();state.evBy={};state.tkBy={};state.loadedSpaces.clear();rebuild()}
 function stopAll(){unsubs.core.forEach(f=>f());unsubs.core=[];stopSpaces();if(unsubs.member){unsubs.member();unsubs.member=null}if(unsubs.user){unsubs.user();unsubs.user=null}}
@@ -942,8 +1001,8 @@ function syncSpaces(){
     if(unsubs.spaces.has(sid))return;
     const meta=snap=>{state.pending=snap.metadata.hasPendingWrites;state.fromCache=snap.metadata.fromCache};
     const err=e=>{console.warn('space',sid,e&&e.code);state.loadedSpaces.add(sid);render()};
-    const a=colRef(sid,'events').onSnapshot({includeMetadataChanges:true},snap=>{state.evBy[sid]=snap.docs.map(d=>({...d.data(),id:d.id,_space:sid}));state.loadedSpaces.add(sid);meta(snap);rebuild();render()},err);
-    const b=colRef(sid,'tasks').onSnapshot({includeMetadataChanges:true},snap=>{state.tkBy[sid]=snap.docs.map(d=>({...d.data(),id:d.id,_space:sid}));meta(snap);rebuild();render()},err);
+    const a=colRef(sid,'events').onSnapshot({includeMetadataChanges:true},snap=>{noticeSnap(sid+'/e',sid,'events',snap);state.evBy[sid]=snap.docs.map(d=>({...d.data(),id:d.id,_space:sid}));state.loadedSpaces.add(sid);meta(snap);rebuild();render()},err);
+    const b=colRef(sid,'tasks').onSnapshot({includeMetadataChanges:true},snap=>{noticeSnap(sid+'/t',sid,'tasks',snap);state.tkBy[sid]=snap.docs.map(d=>({...d.data(),id:d.id,_space:sid}));meta(snap);rebuild();render()},err);
     unsubs.spaces.set(sid,[a,b]);
   });
   rebuild();
@@ -969,9 +1028,10 @@ function startUser(){
   if(unsubs.user)unsubs.user();
   unsubs.user=fb.collection('users').doc(state.uid).onSnapshot(s=>{
     state.userDoc=s.exists?s.data():{};const p=state.userDoc.prefs||{};
-    const next={lang:LANGS[p.lang]?p.lang:state.prefs.lang,colorBy:['cat','subject','person','circle'].includes(p.colorBy)?p.colorBy:state.prefs.colorBy,tz:validTz(p.tz)?p.tz:state.prefs.tz};
+    const next={lang:LANGS[p.lang]?p.lang:state.prefs.lang,colorBy:['cat','subject','person','circle'].includes(p.colorBy)?p.colorBy:state.prefs.colorBy,tz:validTz(p.tz)?p.tz:state.prefs.tz,beCal:typeof p.beCal==='boolean'?p.beCal:state.prefs.beCal,notif:typeof p.notif==='boolean'?p.notif:state.prefs.notif};
     if(next.lang!==lang)setLang(next.lang);VIEW_TZ=next.tz;state.prefs=next;ls.set('planning.prefs',next);
     const u=state.userDoc.ui||{};
+    if(typeof u.lastSeen==='string'&&u.lastSeen>(ls.get(seenKey(),'')||''))ls.set(seenKey(),u.lastSeen);
     if(Array.isArray(u.views)){state.views=u.views.filter(v=>v&&v.id&&v.name).slice(0,30);ls.set('planning.views',state.views)}
     if(['light','dark','auto'].includes(u.theme)&&u.theme!==state.theme){state.theme=u.theme;ls.set('planning.theme',u.theme);applyTheme()}
     render();refreshFilters();
@@ -992,6 +1052,8 @@ function settleIdentity(){
 function maybeEnsure(){if(state.phase==='app'&&state.profilesLoaded&&!state.profileChecked){state.profileChecked=true;ensureProfile()}}
 function enterApp(){
   if(!settleIdentity()){state.phase='pick';stopSpaces();render();return}
+  if(!ls.get(seenKey(),''))ls.set(seenKey(),nowIso());
+  pushRefresh();
   state.phase='app';startCore();syncSpaces();maybeEnsure();render();
 }
 function boot(){
@@ -1032,9 +1094,123 @@ async function initPlanner(){
 function savePrefs(patch){
   state.prefs={...state.prefs,...patch};ls.set('planning.prefs',state.prefs);
   if(patch.lang)setLang(state.prefs.lang);if(patch.tz)VIEW_TZ=state.prefs.tz;render();
-  if(fb&&state.uid)fb.collection('users').doc(state.uid).set({prefs:{lang:state.prefs.lang,colorBy:state.prefs.colorBy,tz:state.prefs.tz}},{merge:true}).catch(()=>{});
+  if(fb&&state.uid)fb.collection('users').doc(state.uid).set({prefs:{lang:state.prefs.lang,colorBy:state.prefs.colorBy,tz:state.prefs.tz,beCal:typeof state.prefs.beCal==='boolean'?state.prefs.beCal:null,notif:state.prefs.notif!==false}},{merge:true}).catch(()=>{});
 }
 const saveUser=(patch,msgKey)=>run(fb.collection('users').doc(state.uid).set(patch,{merge:true}),msgKey);
+
+
+/* ---------- notifications: what others changed (live alerts + "since your last visit") ---------- */
+const seenKey=()=>'planning.lastSeen.'+state.uid;
+const lastSeen=()=>ls.get(seenKey(),'')||'';
+const notifOn=()=>state.prefs.notif!==false;
+const devNotif=()=>!!ls.get('planning.notifDevice',false)&&'Notification' in window&&Notification.permission==='granted';
+const editorOf=x=>x.editedBy||x.ownerUid;
+const msOf=v=>{const n=Date.parse(v||'');return isFinite(n)?n:0};
+function changeKind(x,kind){
+  if(kind==='tasks'&&x.done&&Math.abs(msOf(x.doneAt)-msOf(x.updatedAt))<5000)return 'nDone';
+  return Math.abs(msOf(x.updatedAt)-msOf(x.createdAt))<5000?'nAdded':'nEdited';
+}
+function feedItems(){
+  const since=lastSeen();if(!since)return [];
+  const mk=kind=>x=>({x,kind,who:editorOf(x),at:x.updatedAt||''});
+  return [...state.events.map(mk('events')),...state.tasks.map(mk('tasks'))]
+    .filter(i=>i.at>since&&i.who&&i.who!==state.uid&&visible(i.x))
+    .sort((a,b)=>b.at.localeCompare(a.at)).slice(0,60);
+}
+function ago(v){const m=Math.round((Date.now()-msOf(v))/60000);if(m<1)return t('justNow');if(m<60)return t('agoMin',{n:m});if(m<48*60)return t('agoH',{n:Math.round(m/60)});return t('agoD',{n:Math.round(m/1440)})}
+function markSeen(){const now=nowIso();ls.set(seenKey(),now);if(fb&&state.uid)fb.collection('users').doc(state.uid).set({ui:{lastSeen:now}},{merge:true}).catch(()=>{})}
+function notifPanel(items){
+  const row=i=>{const x=i.x,isEv=i.kind==='events';
+    const when=isEv?(x.date?fmtShort(x.date)+(x.allDay?'':' · '+(x.start||'')):''):(x.due?fmtShort(x.due):'');
+    return `<button class="row" data-act="${isEv?'open-ev':'edit-task'}" data-id="${esc(x.id)}"${isEv&&x.date?` data-date="${x.date}"`:''}><i class="dot big" style="--sc:${personColor(i.who)}"></i><span class="main"><b>${esc(t(changeKind(x,i.kind),{a:personName(i.who)}))} « ${esc(x.title||t('untitled'))} »</b><span>${when?`<span>${esc(when)}</span><span aria-hidden="true">·</span>`:''}<span>${esc(spaceName(x._space))}</span><span aria-hidden="true">·</span><span>${esc(ago(i.at))}</span></span></span></button>`};
+  const sup='Notification' in window;
+  return `<div class="sheet-head"><h2>${esc(t('notifTitle'))}</h2>${closeBtn()}</div>
+  <section class="fsec"><h3>${esc(t('notifSince'))}</h3>${items.length?items.map(row).join(''):`<p class="empty">${esc(t('notifEmpty'))}</p>`}<p class="note" style="margin-top:10px">${esc(t(pushOn()?'notifNotePush':'notifNote'))}</p></section>
+  <section class="fsec"><label class="check"><input type="checkbox" id="n-on" ${notifOn()?'checked':''}> ${esc(t('notifPref'))}</label>
+  <label class="check" style="margin-top:8px"><input type="checkbox" id="n-dev" ${(pushOn()?!!pushTok():devNotif())?'checked':''} ${sup&&(pushOn()||notifOn())?'':'disabled'}> ${esc(t(pushOn()?'notifDevicePush':'notifDevice'))}</label>
+  ${!sup?`<p class="note" style="margin-top:6px">${esc(t(isIOS&&!isStandalone()?'notifIOS':'notifUnsup'))}</p>`:Notification.permission==='denied'?`<p class="note" style="margin-top:6px">${esc(t('notifDenied'))}</p>`:''}</section>`;
+}
+function openNotifs(){
+  const items=feedItems();markSeen();render();
+  const ov=$('#overlay');ov.classList.add('side');
+  ov.innerHTML=`<div class="sheet drawer notifs" role="dialog" aria-modal="true" aria-label="${esc(t('notifTitle'))}">${notifPanel(items)}</div>`;
+  ov.hidden=false;document.body.classList.add('modal-open');
+  const c=ov.querySelector('.sheet-head [data-act="close"]');if(c)c.focus();
+}
+/* live: only real changes from someone else, after the first server load of each list */
+const primed=new Set();let nq=[],nqT=0;
+function noticeSnap(key,sid,kind,snap){
+  if(!primed.has(key)){if(!snap.metadata.fromCache)primed.add(key);return}
+  if(snap.metadata.hasPendingWrites||typeof snap.docChanges!=='function')return;
+  snap.docChanges().forEach(ch=>{
+    if(ch.type==='removed')return;
+    const x={...ch.doc.data(),id:ch.doc.id,_space:sid},who=editorOf(x);
+    if(!who||who===state.uid||!visible(x))return;
+    nq.push({x,kind,who});
+  });
+  if(nq.length){clearTimeout(nqT);nqT=setTimeout(flushNotices,900)}
+}
+function flushNotices(){
+  const q=nq;nq=[];if(!q.length||!notifOn())return;
+  const by=new Map();q.forEach(i=>{if(!by.has(i.who))by.set(i.who,[]);by.get(i.who).push(i)});
+  const lines=[...by.entries()].map(([who,list])=>list.length===1?`${t(changeKind(list[0].x,list[0].kind),{a:personName(who)})} « ${list[0].x.title||t('untitled')} »`:t('nMany',{a:personName(who),n:list.length}));
+  toast(lines.join(' · '));
+  if(devNotif()&&!pushTok()&&document.hidden){try{new Notification(t('notifTitle'),{body:lines.join('\n'),icon:'icone.png',tag:'planning'})}catch(e){}}
+}
+
+
+/* ---------- push notifications (site closed), through the Cloudflare relay ----------
+   right after a change reaches the server, the editor's device asks the relay to tell the others */
+const PUSH_URL=String(CFG.pushUrl||'').trim().replace(/\/+$/,'');
+const pushOn=()=>!!PUSH_URL&&!!CFG.vapidKey;
+const pushSupported=()=>'serviceWorker' in navigator&&'PushManager' in window&&'Notification' in window&&!!window.firebase&&typeof firebase.messaging==='function';
+const isIOS=/iP(hone|ad|od)/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+const isStandalone=()=>(window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||navigator.standalone===true;
+const pushTok=()=>ls.get('planning.pushToken','')||'';
+async function relay(path,body){
+  const u=auth&&auth.currentUser;if(!u){const e=new Error('auth');e.status=0;throw e}
+  const r=await fetch(PUSH_URL+path,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+await u.getIdToken()},body:JSON.stringify(body)});
+  if(!r.ok){const e=new Error('relay '+r.status);e.status=r.status;try{e.detail=(await r.json()).error}catch(x){}throw e}
+  return r.json();
+}
+let swReg=null;
+async function pushEnable(){
+  if(!swReg)swReg=await navigator.serviceWorker.register('firebase-messaging-sw.js',{scope:'./'});
+  await navigator.serviceWorker.ready;
+  const tk=await firebase.messaging().getToken({vapidKey:CFG.vapidKey,serviceWorkerRegistration:swReg});
+  if(!tk)throw new Error('no token');
+  await relay('/register',{token:tk,uid:state.uid,lang,muted:[...state.hidden.spaces]});
+  ls.set('planning.pushToken',tk);
+}
+async function pushDisable(){
+  const tk=pushTok();ls.set('planning.pushToken','');if(!tk)return;
+  try{await relay('/unregister',{token:tk})}catch(e){}
+  try{await firebase.messaging().deleteToken()}catch(e){}
+}
+let pushReT=0;
+function pushRefresh(){if(!pushOn()||!pushTok()||state.phase!=='app'||!pushSupported())return;clearTimeout(pushReT);pushReT=setTimeout(()=>{pushEnable().catch(e=>console.warn('push refresh',e))},1500)}
+const PQ='planning.pushQueue',inflight=new Set();
+const qGet=()=>(ls.get(PQ,[])||[]).filter(j=>j&&j.jid);
+const qDel=jid=>ls.set(PQ,qGet().filter(j=>j.jid!==jid));
+function sendJob(j){
+  if(inflight.has(j.jid))return;inflight.add(j.jid);
+  const {jid,at,...body}=j;
+  relay('/notify',body).then(()=>qDel(jid),e=>{if(e&&e.status&&e.status<500&&e.status!==401)qDel(jid);else console.warn('notify later',e&&e.message)}).finally(()=>inflight.delete(jid));
+}
+/* the job is queued before the write, so a change made offline is still announced once it syncs */
+function pushAfter(p,n){
+  if(!pushOn()||!n.space||n.space===myPrivate())return p;
+  const j={...n,who:state.uid,jid:Date.now().toString(36)+Math.random().toString(36).slice(2,7),at:Date.now()};
+  ls.set(PQ,[...qGet(),j].slice(-50));
+  return p.then(ok=>{if(ok)sendJob(j);else qDel(j.jid);return ok});
+}
+function pushFlush(){
+  if(!pushOn()||state.phase!=='app'||!navigator.onLine||state.pending||state.fromCache)return;
+  const q=qGet();if(!q.length)return;
+  const fresh=q.filter(j=>j.who===state.uid&&Date.now()-(j.at||0)<2*864e5);
+  if(fresh.length!==q.length)ls.set(PQ,q.filter(j=>j.who!==state.uid||Date.now()-(j.at||0)<2*864e5));
+  fresh.forEach(sendJob);
+}
 
 /* ---------- toast ---------- */
 let tt=0;function toast(m){const el=$('#toast');el.textContent=m;el.hidden=false;clearTimeout(tt);tt=setTimeout(()=>{el.hidden=true},2600)}
@@ -1057,6 +1233,7 @@ function doRender(){
   const tabs=$('#tabs');tabs.hidden=!app;
   const nLate=state.tasks.filter(x=>!x.done&&x.due&&x.due<today&&x.ownerUid===state.uid).length;
   document.body.classList.toggle('no-rail',!app);
+  {const bb=$('#btn-bell'),n=app?feedItems().length:0;bb.hidden=!app;bb.innerHTML=ICON.bell+(n?`<span class="badge">${n>9?'9+':n}</span>`:'');const bl=n?t('bellAriaN',{n}):t('bellAria');bb.setAttribute('aria-label',bl);bb.title=bl}
   {const tb=$('#btn-theme'),tl=t(effDark()?'toLight':'toDark');tb.innerHTML=effDark()?ICON.sun:ICON.moon;tb.setAttribute('aria-label',tl);tb.title=tl}
   if(app)tabs.innerHTML='<span class="rail-logo" aria-hidden="true">P</span>'+TABS.map(k=>`<button class="tab" data-act="tab" data-tab="${k}" ${state.tab===k?'aria-current="page"':''}>${ICON[k]}<span>${esc(t('tab_'+k))}</span>${k==='taches'&&nLate?`<span class="badge" title="${esc(t('lateTasks'))}">${nLate}</span>`:''}</button>`).join('');
   const nb=$('#btn-new');nb.hidden=!app;nb.innerHTML=ICON.plus+esc(t('newEvent'));
@@ -1089,6 +1266,7 @@ function updateSync(){
   else if(state.fromCache){s='loading';k='sync_syncing'}
   else{s='ok';k='sync_ok'}
   el.dataset.s=s;el.querySelector('span').textContent=t(k);
+  if(s==='ok')pushFlush();
 }
 const gate=(title,body)=>`<div class="gate panel"><h1>${esc(title)}</h1>${body}</div>`;
 function renderSignin(){return gate(t('signTitle'),`<p>${esc(t('signText'))}</p><button class="btn primary big" data-act="signin">${ICON.google}${esc(t('signBtn'))}</button>${state.signErr?`<p class="err">${esc(t('signErr'))}</p>`:''}<div class="langpick">${Object.entries(LANGS).map(([k,v])=>`<button class="btn ghost" data-act="lang" data-v="${k}" aria-pressed="${lang===k}">${v}</button>`).join('')}</div>`)}
@@ -1143,7 +1321,7 @@ function filterPanel(){
   <section class="fsec"><h3>${esc(t('views'))}</h3><div class="vchips">${views}</div><p class="note">${esc(t('saveViewHint'))}</p><div class="vsave"><input type="text" id="view-name" maxlength="40" placeholder="${esc(t('viewNamePh'))}" aria-label="${esc(t('viewNamePh'))}"><button class="btn primary" data-act="view-save">${esc(t('saveView'))}</button></div><p class="err" id="view-err" hidden></p></section>
   <section class="fsec"><h3>${esc(t('fCircles'))}</h3><p class="note">${esc(t('modesNote'))}</p>${mySpaces().map(sp=>frow('spaces',sp,spaceName(sp),spaceColor(sp))).join('')}</section>
   ${people.length>1?`<section class="fsec"><h3>${esc(t('fPeople'))}</h3>${people.map(pp=>frow('people',pp,personName(pp),personColor(pp))).join('')}</section>`:''}
-  <section class="fsec"><h3>${esc(t('display'))}</h3><label class="check"><input type="checkbox" id="f-hidewe" ${state.hideWE?'checked':''}> ${esc(t('hideWE'))}</label></section>
+  <section class="fsec"><h3>${esc(t('display'))}</h3><label class="check"><input type="checkbox" id="f-hidewe" ${state.hideWE?'checked':''}> ${esc(t('hideWE'))}</label><label class="check" style="margin-top:8px"><input type="checkbox" id="f-becal" ${beWanted()?'checked':''}> ${esc(t('beCalPref'))}</label></section>
   <div class="foot"><button class="btn" data-act="show-all">${esc(t('showAll'))}</button><div class="r"><button class="btn primary" data-act="close">${esc(t('close'))}</button></div></div>`;
 }
 function openFilters(){
@@ -1208,6 +1386,8 @@ function renderJour(){
   const yr=parseD(d).getFullYear()!==parseD(today).getFullYear()?' '+parseD(d).getFullYear():'';
   let h=`<section class="view-head"><div><p class="eyebrow">${esc(eyebrow)}</p><h1>${esc(cap(fmtLong(d))+yr)}</h1></div>${navBtns()}</section>`+filterBar()+kpiTiles(weekKpis(weekStart(d)),weekStart(d));
   if(hol)h+=`<p class="note hol">${esc(t('holidayNote',{n:hol}))}</p>`;
+  {const v=school(d);if(v)h+=`<p class="note vac">${esc(t('vacNote',{n:vacName(v),a:fmtLong(v.from),b:fmtLong(v.to)}))}</p>`;
+   else if(diff===0){const nx=nextSchool(d),k=nx?dayNum(nx.from)-dayNum(d):99;if(nx&&k<=14)h+=`<p class="note vac">${esc(t('vacNext',{n:vacName(nx),k,a:fmtLong(nx.from)}))}</p>`}}
   const nc=diff===0?nextCard():'';
   const agenda=items.length?`<div class="ag">${items.map(i=>agItem(i,conf,{today:diff===0})).join('')}</div>`:
     `<div class="empty">${esc(state.events.length?t('emptyDay'):t('emptyAll'))}<br><button class="btn" data-act="new-ev" data-date="${d}">${esc(t('addEvent'))}</button></div>`;
@@ -1243,7 +1423,7 @@ function weekStrip(ws,shown){
   return `<div class="wstrip" role="group" aria-label="${esc(t('thisWeek'))}">${[...Array(7)].map((_,i)=>{
     const d=addDays(ws,i),items=dayItems(d),on=shown.includes(d);
     const dots=[...new Set(items.slice(0,8).map(it=>evColor(it.ev)))].slice(0,3).map(c=>`<i style="--cc:${c}"></i>`).join('');
-    return `<button class="wsd${on?' in':''}${d===today?' today':''}${skipDay(d)?' off':''}" data-act="mcursor" data-date="${d}" aria-pressed="${on}" aria-label="${esc(t('moAria',{d:fmtLong(d),n:items.length}))}"><small>${esc(N.dow[i])}</small><b>${parseD(d).getDate()}</b><span class="dots">${dots}</span></button>`;
+    return `<button class="wsd${on?' in':''}${d===today?' today':''}${skipDay(d)?' off':''}${school(d)?' vac':''}" data-act="mcursor" data-date="${d}" aria-pressed="${on}" aria-label="${esc(t('moAria',{d:fmtLong(d),n:items.length}))}"><small>${esc(N.dow[i])}</small><b>${parseD(d).getDate()}</b><span class="dots">${dots}</span></button>`;
   }).join('')}</div>`;
 }
 function renderSemaine(){
@@ -1267,13 +1447,13 @@ function renderSemaine(){
   /* every cell gets an explicit row and column, so nothing can slide into the hour column */
   const at=(r,c)=>`grid-row:${r};grid-column:${c}`;
   let g=`<div class="wk-corner" style="${at(1,1)}"></div>`;
-  days.forEach((d,i)=>{const hol=holiday(d);g+=`<button class="wk-h${d===today?' today':''}" data-act="goto-day" data-date="${d}" style="${at(1,i+2)}">${esc(N.dow[wd(d)-1])}<b>${parseD(d).getDate()}</b>${hol?`<span class="hol">${esc(hol)}</span>`:''}</button>`});
+  days.forEach((d,i)=>{const hol=holiday(d);g+=`<button class="wk-h${d===today?' today':''}" data-act="goto-day" data-date="${d}" style="${at(1,i+2)}">${esc(N.dow[wd(d)-1])}<b>${parseD(d).getDate()}</b>${hol?`<span class="hol">${esc(hol)}</span>`:''}${(()=>{const v=school(d);return v?`<span class="vac">${esc(vacName(v))}</span>`:''})()}</button>`});
   if(hasAD){g+=`<div class="wk-adlabel" style="${at(2,1)}">${esc(t('wkAllDay'))}</div>`;per.forEach((l,i)=>{g+=`<div class="wk-ad" style="${at(2,i+2)}">${l.filter(x=>x.s<0).map(x=>`<button class="chipev${isBusy(x.ev)?' busy':''}" data-act="open-ev" data-id="${esc(x.ev.id)}" data-date="${x.d}" style="--cc:${evColor(x.ev)}">${esc(isBusy(x.ev)?busyLabel(x.ev):x.ev.title)}</button>`).join('')}</div>`})}
   g+=`<div class="wk-times" style="${at(R,1)};height:${total}px">${[...Array(eH-sH)].map((_,n)=>n?`<span style="top:${n*H}px">${pad(sH+n)}:00</span>`:'').join('')}</div>`;
   const nm=nowMin();
   days.forEach((d,di)=>{
     const Ln=lanes(per[di]),conf=confs[di];
-    let col=`<div class="wk-col${d===today?' is-today':''}${holiday(d)?' is-hol':''}" data-act="slot" data-date="${d}" data-sh="${sH}" style="${at(R,di+2)};height:${total}px">`;
+    let col=`<div class="wk-col${d===today?' is-today':''}${holiday(d)?' is-hol':''}${school(d)?' is-vac':''}" data-act="slot" data-date="${d}" data-sh="${sH}" style="${at(R,di+2)};height:${total}px">`;
     per[di].filter(i=>i.s>=0).forEach(i=>{
       const p=Ln.get(i)||{lane:0,n:1},top=(i.s-sH*60)/60*H,ht=Math.max(20,(i.e-i.s)/60*H-2),s=subj(i.ev.subject);
       const who=i.ev.ownerUid!==state.uid?(state.profiles[i.ev.ownerUid]||{}).name:'';
@@ -1295,8 +1475,8 @@ function renderMois(){
   let h=`<section class="view-head"><div><p class="eyebrow">${y}</p><h1>${esc(cap(N.mon[m]))}</h1></div>${navBtns('thisMonth')}</section>`+filterBar();
   let cells=N.dow.map(x=>`<div class="mo-dow">${esc(x)}</div>`).join('');
   for(let i=0;i<rows*7;i++){
-    const d=addDays(gs,i),dd=parseD(d),items=dayItems(d),hol=holiday(d);
-    cells+=`<button class="mo-cell${dd.getMonth()!==m?' out':''}${d===today?' today':''}" data-act="goto-day" data-date="${d}" aria-label="${esc(t('moAria',{d:fmtLong(d),n:items.length}))}"><span class="mo-num">${dd.getDate()}</span>${hol?`<span class="mo-hol">${esc(hol)}</span>`:''}<span class="mo-list">${items.slice(0,3).map(it=>`<span class="mo-ch${isBusy(it.ev)?' busy':''}" style="--cc:${evColor(it.ev)}">${it.s>=0?`<span class="mono">${hm(it.s)}</span> `:''}${esc(isBusy(it.ev)?busyLabel(it.ev):it.ev.title)}</span>`).join('')}</span>${items.length>3?`<span class="mo-more">${esc(t('moMore',{n:items.length-3}))}</span>`:''}<span class="mo-dots">${items.slice(0,6).map(it=>`<i style="--cc:${evColor(it.ev)}"></i>`).join('')}</span></button>`;
+    const d=addDays(gs,i),dd=parseD(d),items=dayItems(d),hol=holiday(d),vac=school(d),vacLbl=vac&&(d===vac.from||wd(d)===1||dd.getDate()===1)?vacName(vac):'';
+    cells+=`<button class="mo-cell${dd.getMonth()!==m?' out':''}${d===today?' today':''}${vac?' is-vac':''}" data-act="goto-day" data-date="${d}" aria-label="${esc(t('moAria',{d:fmtLong(d),n:items.length}))}"><span class="mo-num">${dd.getDate()}</span>${hol?`<span class="mo-hol">${esc(hol)}</span>`:''}${vacLbl?`<span class="mo-vac">${esc(vacLbl)}</span>`:''}<span class="mo-list">${items.slice(0,3).map(it=>`<span class="mo-ch${isBusy(it.ev)?' busy':''}" style="--cc:${evColor(it.ev)}">${it.s>=0?`<span class="mono">${hm(it.s)}</span> `:''}${esc(isBusy(it.ev)?busyLabel(it.ev):it.ev.title)}</span>`).join('')}</span>${items.length>3?`<span class="mo-more">${esc(t('moMore',{n:items.length-3}))}</span>`:''}<span class="mo-dots">${items.slice(0,6).map(it=>`<i style="--cc:${evColor(it.ev)}"></i>`).join('')}</span></button>`;
   }
   return loadingOr(h+`<div class="mo">${cells}</div>`);
 }
@@ -1420,6 +1600,7 @@ function openEditor(ev,occDate,preset={}){
    <div class="field f-time"><label for="f-tz">${esc(t('tzLabel'))}</label><select id="f-tz">${tzOptions(ev?evTz(e):VIEW_TZ)}</select><span class="note" id="f-tzhint" style="margin:2px 0 0"></span></div>
    <label class="check"><input type="checkbox" id="f-allday" ${e.allDay?'checked':''}> ${esc(t('allDay'))}</label>
    <div class="two"><div class="field"><label for="f-recur">${esc(t('repeat'))}</label><select id="f-recur"><option value="once" ${!rec?'selected':''}>${esc(t('once'))}</option><option value="weekly" ${e.recur==='weekly'?'selected':''}>${esc(t('weekly'))}</option><option value="biweekly" ${e.recur==='biweekly'?'selected':''}>${esc(t('biweekly'))}</option></select></div><div class="field" id="f-until-wrap" ${rec?'':'hidden'}><label for="f-until">${esc(t('until'))}</label><input type="date" id="f-until" value="${esc(e.until||'')}"></div></div>
+   <label class="check" id="f-vacskip-wrap" ${rec?'':'hidden'}><input type="checkbox" id="f-vacskip" ${(typeof e.vacSkip==='boolean'?e.vacSkip:circlePause(group(e._space)))?'checked':''}> ${esc(t('vacSkip'))}</label>
    <div class="field"><label for="f-notes">${esc(t('notes'))}</label><textarea id="f-notes" maxlength="2000" placeholder="${esc(t('notesPh'))}">${esc(e.notes||'')}</textarea></div>
   </fieldset>
    ${exc?`<p class="by">${esc(t('cancelledN',{n:exc,d:(e.exceptions||[]).slice().sort().map(fmtShort).join(', ')}))}</p>`:''}
@@ -1427,8 +1608,9 @@ function openEditor(ev,occDate,preset={}){
    ${ro?'':`<div class="foot">${isNew?'':`<button type="button" class="btn danger" id="f-del">${esc(t(rec?'delSeries':'del'))}</button>`}<div class="r">${!isNew&&rec&&occDate?`<button type="button" class="btn" id="f-skip">${esc(t('cancelOn',{d:fmtShort(occDate)}))}</button>`:''}${!isNew?`<button type="button" class="btn" id="f-dup">${esc(t('duplicate'))}</button>`:''}${exc?`<button type="button" class="btn" id="f-restore">${esc(t('restoreSessions'))}</button>`:''}<button type="submit" class="btn primary">${esc(t('save'))}</button></div></div>`}
   </form>`,sh=>{
     const f=sh.querySelector('#ev-form'),ad=sh.querySelector('#f-allday'),rc=sh.querySelector('#f-recur'),sp=sh.querySelector('#f-space');
-    const sync=()=>{sh.querySelectorAll('.f-time').forEach(x=>x.hidden=ad.checked);sh.querySelector('#f-until-wrap').hidden=rc.value==='once';sh.querySelector('#f-common-wrap').hidden=owner?sp.value===myPrivate():e._space===myPrivate()};
+    const sync=()=>{sh.querySelectorAll('.f-time').forEach(x=>x.hidden=ad.checked);sh.querySelector('#f-until-wrap').hidden=rc.value==='once';sh.querySelector('#f-vacskip-wrap').hidden=rc.value==='once';sh.querySelector('#f-common-wrap').hidden=owner?sp.value===myPrivate():e._space===myPrivate()};
     ad.addEventListener('change',sync);rc.addEventListener('change',sync);sp.addEventListener('change',sync);sync();
+    {const vs=sh.querySelector('#f-vacskip');let touched=typeof e.vacSkip==='boolean';vs.addEventListener('change',()=>{touched=true});sp.addEventListener('change',()=>{if(!touched)vs.checked=circlePause(group(sp.value))})}
     const tzHint=()=>{const z=sh.querySelector('#f-tz').value,h=sh.querySelector('#f-tzhint'),dt=sh.querySelector('#f-date').value,s=mins(sh.querySelector('#f-start').value),en=mins(sh.querySelector('#f-end').value);
       if(z===VIEW_TZ||!/^\d{4}-\d{2}-\d{2}$/.test(dt)||s==null){h.textContent='';return}
       const a=utcToZoned(zonedToUtc(dt,s,z),VIEW_TZ),b=en!=null?utcToZoned(zonedToUtc(dt,en,z),VIEW_TZ):null;
@@ -1442,7 +1624,7 @@ function openEditor(ev,occDate,preset={}){
       x.preventDefault();
       const err=sh.querySelector('#f-err'),g=id=>sh.querySelector(id);
       const target=owner?sp.value:e._space;
-      const data={title:g('#f-title').value.trim(),cat:(sh.querySelector('input[name=cat]:checked')||{}).value||'autre',subject:g('#f-subject').value,location:g('#f-loc').value.trim(),date:g('#f-date').value,start:g('#f-start').value,end:g('#f-end').value,allDay:g('#f-allday').checked,recur:g('#f-recur').value,until:g('#f-recur').value==='once'?'':g('#f-until').value,notes:g('#f-notes').value.trim(),exceptions:e.exceptions||[],common:target!==myPrivate()&&g('#f-common').checked,tz:g('#f-tz').value};
+      const data={title:g('#f-title').value.trim(),cat:(sh.querySelector('input[name=cat]:checked')||{}).value||'autre',subject:g('#f-subject').value,location:g('#f-loc').value.trim(),date:g('#f-date').value,start:g('#f-start').value,end:g('#f-end').value,allDay:g('#f-allday').checked,recur:g('#f-recur').value,until:g('#f-recur').value==='once'?'':g('#f-until').value,vacSkip:g('#f-recur').value!=='once'&&g('#f-vacskip').checked,notes:g('#f-notes').value.trim(),exceptions:e.exceptions||[],common:target!==myPrivate()&&g('#f-common').checked,tz:g('#f-tz').value};
       let msg='';
       if(!data.title)msg='errTitle';
       else if(!/^\d{4}-\d{2}-\d{2}$/.test(data.date))msg='errDate';
@@ -1464,7 +1646,7 @@ function openEditor(ev,occDate,preset={}){
 }
 function openEditorCopy(copy){openEditor(null,null,{});const sh=$('#overlay .sheet');if(!sh)return;const s=(id,v)=>{const el=sh.querySelector(id);if(el)el.value=v??''};
   s('#f-title',copy.title);s('#f-subject',copy.subject);s('#f-loc',copy.location);s('#f-date',copy.date);s('#f-start',copy.start);s('#f-end',copy.end);s('#f-recur',copy.recur||'once');s('#f-until',copy.until);s('#f-notes',copy.notes);s('#f-tz',evTz(copy));s('#f-space',copy._space);
-  const r=sh.querySelector(`input[name=cat][value="${catOf(copy.cat)}"]`);if(r)r.checked=true;const ad=sh.querySelector('#f-allday');ad.checked=!!copy.allDay;sh.querySelector('#f-common').checked=!!copy.common;['#f-allday','#f-recur','#f-space'].forEach(q=>sh.querySelector(q).dispatchEvent(new Event('change')))}
+  const r=sh.querySelector(`input[name=cat][value="${catOf(copy.cat)}"]`);if(r)r.checked=true;const ad=sh.querySelector('#f-allday');ad.checked=!!copy.allDay;sh.querySelector('#f-common').checked=!!copy.common;if(typeof copy.vacSkip==='boolean')sh.querySelector('#f-vacskip').checked=copy.vacSkip;['#f-allday','#f-recur','#f-space'].forEach(q=>sh.querySelector(q).dispatchEvent(new Event('change')))}
 
 function openTask(x){
   const ro=!canEdit(x),owner=x.ownerUid===state.uid;
@@ -1512,11 +1694,13 @@ function openCircle(gr){
   <form class="form" id="circle-form" novalidate>
    <div class="field"><label for="ci-name">${esc(t('name'))}</label><input type="text" id="ci-name" maxlength="40" value="${esc(gr.name)}"></div>
    <div class="field"><span class="lbl">${esc(t('color'))}</span><div class="swatches">${[...Array(8)].map((_,k)=>`<label class="sw"><input type="radio" name="ci-col" value="${k}" ${(gr.color??0)%8===k?'checked':''} aria-label="${esc(t('colorN',{n:k+1}))}"><span style="--sc:var(--s${k})"></span></label>`).join('')}</div></div>
+   <label class="check"><input type="checkbox" id="ci-becal" ${isNew||circleBe(gr)?'checked':''}> ${esc(t('beCalCircle'))}</label><p class="note" style="margin:-6px 0 0">${esc(t('beCalCircleNote'))}</p>
+   <label class="check"><input type="checkbox" id="ci-pause" ${circlePause(gr)?'checked':''}> ${esc(t('pauseVac'))}</label><p class="note" style="margin:-6px 0 0">${esc(t('pauseVacNote'))}</p>
    ${isNew?'':`<p class="by">${esc(t('circleDelWarn'))}</p>`}<p class="err" id="ci-err" hidden></p>
    <div class="foot">${isNew?'<span></span>':`<button type="button" class="btn danger" id="ci-del">${esc(t('del'))}</button>`}<div class="r"><button type="submit" class="btn primary">${esc(t('save'))}</button></div></div></form>`,sh=>{
     sh.querySelector('#circle-form').addEventListener('submit',async x=>{x.preventDefault();const name=sh.querySelector('#ci-name').value.trim();if(!name){const er=sh.querySelector('#ci-err');er.textContent=t('errSubjName');er.hidden=false;return}
       const id=gr.id||newId(),color=+((sh.querySelector('input[name=ci-col]:checked')||{}).value||0);closeModal();
-      const b=fb.batch();b.set(fb.collection('groups').doc(id),{name,color,updatedAt:nowIso()},{merge:true});
+      const b=fb.batch();b.set(fb.collection('groups').doc(id),{name,color,beCal:sh.querySelector('#ci-becal').checked,pauseVac:sh.querySelector('#ci-pause').checked,updatedAt:nowIso()},{merge:true});
       if(isNew){const me=state.members.find(mm=>mm.id===state.email);b.set(fb.collection('members').doc(state.email),{groups:[...new Set([...((me&&me.groups)||[]),id])]},{merge:true})}
       run(b.commit(),'tCircleSaved')});
     const del=sh.querySelector('#ci-del');if(del)del.addEventListener('click',()=>armDelete(del,()=>{closeModal();const b=fb.batch();b.delete(fb.collection('groups').doc(gr.id));state.members.filter(mm=>(mm.groups||[]).includes(gr.id)).forEach(mm=>b.update(fb.collection('members').doc(mm.id),{groups:(mm.groups||[]).filter(g=>g!==gr.id)}));run(b.commit(),'tCircleDeleted')}));
@@ -1588,7 +1772,7 @@ document.addEventListener('click',e=>{
   const app=state.phase==='app';
   switch(el.dataset.act){
     case 'signin':signIn();break;
-    case 'signout':auth&&auth.signOut();break;
+    case 'signout':(pushOn()&&pushTok()?pushDisable():Promise.resolve()).finally(()=>{auth&&auth.signOut()});break;
     case 'init':initPlanner();break;
     case 'pick-profile':ls.set(profKey(),el.dataset.id);enterApp();break;
     case 'switch-profile':ls.set(profKey(),null);state.profile=null;state.uid=state.authUid;stopSpaces();state.phase='pick';closeModal();render();break;
@@ -1609,6 +1793,7 @@ document.addEventListener('click',e=>{
     case 'colorby':savePrefs({colorBy:el.dataset.v});break;
     case 'theme':setTheme(el.dataset.v);break;
     case 'theme-flip':setTheme(effDark()?'light':'dark');break;
+    case 'notifs':if(app)openNotifs();break;
     case 'filters':if(app)openFilters();break;
     case 'fmode':setMode(el.dataset.kind,el.dataset.id,el.dataset.v);break;
     case 'show-all':applyCfg({});break;
@@ -1653,9 +1838,20 @@ document.addEventListener('change',e=>{
   else if(el.name==='my-col')run(fb.collection('profiles').doc(state.uid).set({color:+el.value},{merge:true}));
   else if(id==='import-file'&&el.files&&el.files[0])readImport(el.files[0]);
   else if(id==='f-hidewe'){state.hideWE=el.checked;saveHidden();render()}
+  else if(id==='f-becal')savePrefs({beCal:el.checked});
+  else if(id==='n-on'){savePrefs({notif:el.checked});const d=$('#n-dev');if(d)d.disabled=!el.checked||!('Notification' in window)}
+  else if(id==='n-dev'){
+    if(!el.checked){ls.set('planning.notifDevice',false);if(pushOn())pushDisable();return}
+    if(!('Notification' in window)){el.checked=false;toast(t(isIOS&&!isStandalone()?'notifIOS':'notifUnsup'));return}
+    Promise.resolve(Notification.permission==='granted'?'granted':Notification.requestPermission()).then(async r=>{
+      if(r!=='granted'){el.checked=false;ls.set('planning.notifDevice',false);toast(t('notifDenied'));return}
+      ls.set('planning.notifDevice',true);
+      if(pushOn()&&pushSupported()){el.disabled=true;try{await pushEnable();toast(t('pushOk'))}catch(e){console.warn('push',e);el.checked=false;ls.set('planning.notifDevice',false);toast(t('pushFail'))}finally{el.disabled=false}}
+    }).catch(()=>{el.checked=false});
+  }
 });
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('#overlay').hidden)closeModal();else if(e.key==='Enter'&&e.target&&e.target.id==='view-name'){e.preventDefault();const b=document.querySelector('[data-act="view-save"]');if(b)b.click()}});
-window.addEventListener('online',()=>{state.offline=false;updateSync()});
+window.addEventListener('online',()=>{state.offline=false;updateSync();pushFlush()});
 window.addEventListener('offline',()=>{state.offline=true;updateSync()});
 setInterval(()=>{if(state.phase==='app'&&['jour','semaine'].includes(state.tab)&&$('#overlay').hidden)render()},60000);
 
