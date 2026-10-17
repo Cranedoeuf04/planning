@@ -848,7 +848,7 @@ state.hideWE=!!hiddenSaved.hideWE;
 state.views=(ls.get('planning.views',[])||[]).filter(v=>v&&v.id&&v.name);
 {const th=ls.get('planning.theme','auto');state.theme=['light','dark','auto'].includes(th)?th:'auto'}
 function remember(){ls.set('planning.ui',{tab:state.tab,taskFilter:state.taskFilter})}
-function saveHidden(){pushRefresh&&setTimeout(pushRefresh,0);ls.set('planning.hidden',{people:[...state.hidden.people],spaces:[...state.hidden.spaces],busyPeople:[...state.busy.people],busySpaces:[...state.busy.spaces],hideWE:state.hideWE})}
+function saveHidden(){ls.set('planning.hidden',{people:[...state.hidden.people],spaces:[...state.hidden.spaces],busyPeople:[...state.busy.people],busySpaces:[...state.busy.spaces],hideWE:state.hideWE})}
 const myPrivate=()=>'u_'+state.uid;
 const mySpaces=()=>[myPrivate(),...((state.member&&state.member.groups)||[]).filter(g=>state.groups.some(x=>x.id===g))];
 const group=id=>state.groups.find(g=>g.id===id);
@@ -1114,7 +1114,7 @@ function feedItems(){
   const since=lastSeen();if(!since)return [];
   const mk=kind=>x=>({x,kind,who:editorOf(x),at:x.updatedAt||''});
   return [...state.events.map(mk('events')),...state.tasks.map(mk('tasks'))]
-    .filter(i=>i.at>since&&i.who&&i.who!==state.uid&&visible(i.x))
+    .filter(i=>i.at>since&&i.who&&i.who!==state.uid)
     .sort((a,b)=>b.at.localeCompare(a.at)).slice(0,60);
 }
 function ago(v){const m=Math.round((Date.now()-msOf(v))/60000);if(m<1)return t('justNow');if(m<60)return t('agoMin',{n:m});if(m<48*60)return t('agoH',{n:Math.round(m/60)});return t('agoD',{n:Math.round(m/1440)})}
@@ -1145,7 +1145,7 @@ function noticeSnap(key,sid,kind,snap){
   snap.docChanges().forEach(ch=>{
     if(ch.type==='removed')return;
     const x={...ch.doc.data(),id:ch.doc.id,_space:sid},who=editorOf(x);
-    if(!who||who===state.uid||!visible(x))return;
+    if(!who||who===state.uid)return;
     nq.push({x,kind,who});
   });
   if(nq.length){clearTimeout(nqT);nqT=setTimeout(flushNotices,900)}
@@ -1179,7 +1179,7 @@ async function pushEnable(){
   await navigator.serviceWorker.ready;
   const tk=await firebase.messaging().getToken({vapidKey:CFG.vapidKey,serviceWorkerRegistration:swReg});
   if(!tk)throw new Error('no token');
-  await relay('/register',{token:tk,uid:state.uid,lang,muted:[...state.hidden.spaces]});
+  await relay('/register',{token:tk,uid:state.uid,lang,muted:[]});
   ls.set('planning.pushToken',tk);
 }
 async function pushDisable(){
